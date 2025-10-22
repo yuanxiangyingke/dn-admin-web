@@ -1,0 +1,32 @@
+spring:
+  application:
+    name: dn-admin-server
+  datasource:
+    url: jdbc:postgresql://localhost:5432/dn_admin
+    username: dn_admin
+    password: change_me
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+    open-in-view: false
+  jackson:
+    serialization:
+      WRITE_DATES_AS_TIMESTAMPS: false
+
+server:
+  port: 8080
+
+logging:
+  level:
+    root: info
+    org.springframework.security: warn
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
