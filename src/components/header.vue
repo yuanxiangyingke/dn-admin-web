@@ -36,7 +36,7 @@
                     </el-tooltip>
                 </div>
                 <!-- 用户头像 -->
-                <el-avatar class="user-avator" :size="30" :src="imgurl" />
+                <el-avatar class="user-avator" :size="30" :src="avatarUrl" />
                 <!-- 用户名下拉菜单 -->
                 <el-dropdown class="user-name" trigger="click" @command="handleCommand">
                     <span class="el-dropdown-link">
@@ -63,12 +63,28 @@
     </div>
 </template>
 <script setup lang="ts">
-import { onMounted } from 'vue';
-import { useSidebarStore } from '../store/sidebar';
+import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { useSidebarStore } from '../store/sidebar';
+import { usePermissStore } from '@/store/permiss';
+import { logout as logoutApi } from '@/api/index';
+import { ElMessage } from 'element-plus';
 import imgurl from '../assets/img/img.jpg';
 
-const username: string | null = localStorage.getItem('vuems_name');
+const permiss = usePermissStore();
+let parsedUser: Record<string, any> | null = null;
+const storedUser = localStorage.getItem('user_info');
+if (storedUser) {
+    try {
+        parsedUser = JSON.parse(storedUser);
+    } catch (error) {
+        console.error('Failed to parse user info from storage', error);
+    }
+}
+const username = ref<string>(
+    parsedUser?.nickname || parsedUser?.username || localStorage.getItem('vuems_name') || '未登录'
+);
+const avatarUrl = ref<string>(parsedUser?.avatar || imgurl);
 const message: number = 2;
 
 const sidebar = useSidebarStore();
@@ -83,12 +99,35 @@ onMounted(() => {
     }
 });
 
-// 用户名下拉菜单选择事件
 const router = useRouter();
-const handleCommand = (command: string) => {
+const clearAuthState = () => {
+    ['auth_token', 'refresh_token', 'perms', 'vuems_name', 'user_info', 'menus'].forEach((key) =>
+        localStorage.removeItem(key)
+    );
+    permiss.handleSet([]);
+    username.value = '未登录';
+    avatarUrl.value = imgurl;
+};
+
+// 用户名下拉菜单选择事件
+const handleCommand = async (command: string) => {
     if (command == 'loginout') {
-        localStorage.removeItem('vuems_name');
-        router.push('/login');
+        let serverFailed = false;
+        try {
+            if (localStorage.getItem('auth_token')) {
+                await logoutApi();
+            }
+        } catch (error) {
+            console.error('Logout request failed', error);
+            ElMessage.error('退出登录请求失败，请稍后再试');
+            serverFailed = true;
+        } finally {
+            clearAuthState();
+            router.push('/login');
+            if (!serverFailed) {
+                ElMessage.success('已退出登录');
+            }
+        }
     } else if (command == 'user') {
         router.push('/ucenter');
     }

@@ -33,8 +33,15 @@
                     <el-checkbox class="pwd-checkbox" v-model="checked" label="记住密码" />
                     <el-link type="primary" @click="$router.push('/reset-pwd')">忘记密码</el-link>
                 </div>
-                <el-button class="login-btn" type="primary" size="large" @click="submitForm(login)">登录</el-button>
-                <p class="login-tips">Tips : 用户名和密码随便填。</p>
+                <el-button
+                    class="login-btn"
+                    type="primary"
+                    size="large"
+                    :loading="loading"
+                    @click="submitForm(login)"
+                    >登录</el-button
+                >
+                <p class="login-tips">Tips : 使用后端提供的真实账号登录。</p>
                 <p class="login-text">
                     没有账号？<el-link type="primary" @click="$router.push('/register')">立即注册</el-link>
                 </p>
@@ -50,6 +57,8 @@ import { usePermissStore } from '@/store/permiss';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import type { FormInstance, FormRules } from 'element-plus';
+import { login as loginApi } from '@/api/index';
+import type { AxiosError } from 'axios';
 
 interface LoginInfo {
     username: string;
@@ -78,25 +87,75 @@ const rules: FormRules = {
 };
 const permiss = usePermissStore();
 const login = ref<FormInstance>();
-const submitForm = (formEl: FormInstance | undefined) => {
+const loading = ref(false);
+const submitForm = async (formEl: FormInstance | undefined) => {
     if (!formEl) return;
-    formEl.validate((valid: boolean) => {
-        if (valid) {
-            ElMessage.success('登录成功');
-            localStorage.setItem('vuems_name', param.username);
-            const keys = permiss.defaultList[param.username == 'admin' ? 'admin' : 'user'];
-            permiss.handleSet(keys);
-            router.push('/');
-            if (checked.value) {
-                localStorage.setItem('login-param', JSON.stringify(param));
-            } else {
-                localStorage.removeItem('login-param');
-            }
-        } else {
-            ElMessage.error('登录失败');
-            return false;
+    try {
+        const valid = await formEl.validate();
+        if (!valid) {
+            return;
         }
-    });
+    } catch (error) {
+        return;
+    }
+    loading.value = true;
+    try {
+        const response = await loginApi({
+            username: param.username,
+            password: param.password,
+        });
+        const { code, message, data } = response.data;
+        if (code !== '0') {
+            throw new Error(message || '登录失败');
+        }
+        const userInfo = data?.user ?? {};
+        const displayName =
+            (userInfo?.nickname as string | undefined) ||
+            (userInfo?.username as string | undefined) ||
+            param.username;
+        const perms = Array.isArray(data?.perms) ? (data?.perms as string[]) : [];
+        const refreshToken = data?.refreshToken as string | undefined;
+        const token = data?.token as string | undefined;
+        if (token) {
+            localStorage.setItem('auth_token', token);
+        }
+        if (refreshToken) {
+            localStorage.setItem('refresh_token', refreshToken);
+        } else {
+            localStorage.removeItem('refresh_token');
+        }
+        localStorage.setItem('vuems_name', displayName);
+        localStorage.setItem('user_info', JSON.stringify(userInfo));
+        const fallbackPerms =
+            permiss.defaultList[param.username === 'admin' ? 'admin' : 'user'] || [];
+        const resolvedPerms = perms.length ? perms : fallbackPerms;
+        permiss.handleSet(resolvedPerms);
+        if (Array.isArray(data?.menus)) {
+            localStorage.setItem('menus', JSON.stringify(data?.menus));
+        }
+        if (checked.value) {
+            localStorage.setItem('login-param', JSON.stringify(param));
+        } else {
+            localStorage.removeItem('login-param');
+        }
+        ElMessage.success('登录成功');
+        router.push('/');
+    } catch (error) {
+        const axiosError = error as AxiosError<{ code?: string; message?: string }>;
+        if (axiosError?.isAxiosError) {
+            const responseCode = axiosError.response?.data?.code;
+            const responseMessage = axiosError.response?.data?.message;
+            const errMsg =
+                responseMessage ||
+                (responseCode === '401' ? '用户名或密码错误' : axiosError.message || '登录失败');
+            ElMessage.error(errMsg);
+        } else {
+            const errMsg = error instanceof Error ? error.message : '登录失败';
+            ElMessage.error(errMsg);
+        }
+    } finally {
+        loading.value = false;
+    }
 };
 
 const tabs = useTabsStore();

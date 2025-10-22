@@ -46,15 +46,28 @@ export const usePermissStore = defineStore('permiss', {
             user: ['0', '1', '11', '12', '13'],
         };
         const username = localStorage.getItem('vuems_name');
-        console.log(username);
+        const storedPerms = localStorage.getItem('perms');
+        let persisted: string[] = [];
+        if (storedPerms) {
+            try {
+                const parsed = JSON.parse(storedPerms);
+                if (Array.isArray(parsed)) {
+                    persisted = parsed;
+                }
+            } catch (error) {
+                console.error('Failed to parse stored permissions', error);
+            }
+        }
+        const fallback = username === 'admin' ? defaultList.admin : defaultList.user;
         return {
-            key: (username == 'admin' ? defaultList.admin : defaultList.user) as string[],
+            key: persisted.length ? persisted : (fallback as string[]),
             defaultList,
         };
     },
     actions: {
         handleSet(val: string[]) {
             this.key = val;
+            localStorage.setItem('perms', JSON.stringify(val));
         },
     },
 });
