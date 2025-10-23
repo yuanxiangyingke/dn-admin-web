@@ -154,6 +154,30 @@
 
 ### 2.2 角色管理
 - **列表**：`GET /api/roles`
+  - **Query**：`page`（默认 1）、`size`（默认 10，最大 100）
+  - **响应示例**
+  ```json
+  {
+    "code": "0",
+    "message": "success",
+    "data": {
+      "list": [
+        {
+          "id": 1,
+          "code": "admin",
+          "name": "超级管理员",
+          "description": "默认系统管理员角色",
+          "createdAt": "2024-10-22T08:00:00Z",
+          "updatedAt": "2024-10-22T08:00:00Z",
+          "permissions": ["system:user:list", "system:role:list"]
+        }
+      ],
+      "page": 1,
+      "size": 10,
+      "total": 12
+    }
+  }
+  ```
 - **创建**：`POST /api/roles`
 - **更新**：`PUT /api/roles/{id}`
 - **删除**：`DELETE /api/roles/{id}`
@@ -165,10 +189,11 @@
   }
   ```
 
-角色列表的响应参考 `public/mock/role.json`，包含角色信息与绑定的权限 ID。
+角色列表返回分页数据结构，`list` 字段包含角色详情及权限编码集合。
 
 ### 2.3 菜单管理
 - **菜单树**：`GET /api/menus/tree`
+  - **Query**：`roleId`（可选）。传入角色 ID 时，返回节点中会包含 `assigned` 字段，标记该角色是否拥有对应菜单/权限。
   - 响应结构示例：
   ```json
   [
@@ -177,6 +202,7 @@
       "title": "系统首页",
       "index": "/dashboard",
       "icon": "Odometer",
+      "assigned": false,
       "children": []
     }
   ]
