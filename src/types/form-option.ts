@@ -18,4 +18,5 @@ export interface FormOptionList {
     activeText?: string;
     inactiveText?: string;
     required?: boolean;
+    multiple?: boolean;
 }

@@ -169,17 +169,15 @@ const generateData = () => {
 
 const transferData = ref(generateData())
 // 提交
-const onSubmit = (formEl: FormInstance | undefined) => {
-    // 表单校验
+const onSubmit = async (formEl: FormInstance | undefined) => {
     if (!formEl) return;
-    formEl.validate((valid) => {
-        if (valid) {
-            console.log(form);
-            ElMessage.success('提交成功！');
-        } else {
-            return false;
-        }
-    });
+    try {
+        await formEl.validate();
+    } catch (error) {
+        return;
+    }
+    console.log(form);
+    ElMessage.success('提交成功！');
 };
 // 重置
 const onReset = (formEl: FormInstance | undefined) => {

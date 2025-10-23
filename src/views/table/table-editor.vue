@@ -56,10 +56,20 @@ let columns = ref([
 	{ prop: 'role', label: '角色' },
 	{ prop: 'operator', label: '操作', width: 180 },
 ])
-const tableData = ref([]);
+const tableData = ref<any[]>([]);
 const getData = async () => {
-	const res = await fetchUserData();
-	tableData.value = res.data.list;
+	const res = await fetchUserData({ page: 1, size: 100 });
+	const payload = res.data.data;
+	const list = payload?.list ?? [];
+	tableData.value = list.map((item: Record<string, any>) => ({
+		id: item.id,
+		name: item.name ?? item.username ?? '',
+		password: item.password ?? '',
+		email: item.email ?? '',
+		role: Array.isArray(item.roles)
+			? item.roles.map((role: any) => role?.name ?? role).join('、')
+			: item.role ?? '',
+	}));
 };
 getData();
 

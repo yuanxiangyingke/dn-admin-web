@@ -9,7 +9,7 @@
 					<el-input-number v-else-if="item.type === 'number'" v-model="form[item.prop]"
 						:disabled="item.disabled" controls-position="right"></el-input-number>
 					<el-select v-else-if="item.type === 'select'" v-model="form[item.prop]" :disabled="item.disabled"
-						:placeholder="item.placeholder" clearable>
+						:multiple="item.multiple" :placeholder="item.placeholder" clearable>
 						<el-option v-for="opt in item.opts" :label="opt.label" :value="opt.value"></el-option>
 					</el-select>
 					<el-date-picker v-else-if="item.type === 'date'" type="date" v-model="form[item.prop]"
@@ -73,12 +73,14 @@ const rules: FormRules = options.list.map(item => {
 
 
 const formRef = ref<FormInstance>();
-const saveEdit = (formEl: FormInstance | undefined) => {
+const saveEdit = async (formEl: FormInstance | undefined) => {
 	if (!formEl) return;
-	formEl.validate(valid => {
-		if (!valid) return false;
-		update(form.value);
-	});
+	try {
+		await formEl.validate();
+	} catch (error) {
+		return;
+	}
+	update(form.value);
 };
 
 const handleAvatarSuccess: UploadProps['onSuccess'] = (response, uploadFile) => {
