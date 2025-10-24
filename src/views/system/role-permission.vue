@@ -19,12 +19,15 @@ import { ElMessage, ElTree } from 'element-plus';
 import { fetchMenuTree, updateRolePermissions } from '@/api';
 import type { AxiosError } from 'axios';
 
-const props = defineProps({
-    permissOptions: {
-        type: Object,
-        required: true,
-    },
-});
+interface RolePermissionOptions {
+    id?: number | string;
+    code?: string;
+    permissionIds?: Array<string | number>;
+}
+
+const props = defineProps<{
+    permissOptions: RolePermissionOptions;
+}>();
 
 const emit = defineEmits<{
     (event: 'success'): void;
@@ -93,11 +96,16 @@ const syncCheckedKeys = (keys: string[]) => {
     });
 };
 
-const loadMenuTree = async (roleId?: number | string) => {
+const loadMenuTree = async (roleCode?: string) => {
+    if (!roleCode || !roleCode.trim().length) {
+        treeData.value = [];
+        syncCheckedKeys([]);
+        return;
+    }
     loading.value = true;
     permissionMap.value = {};
     try {
-        const response = await fetchMenuTree(roleId);
+        const response = await fetchMenuTree(roleCode);
         const nodes = response.data.data ?? [];
         treeData.value = transformTree(nodes);
         const assignedKeys = collectAssignedKeys(nodes);
@@ -115,12 +123,7 @@ const loadMenuTree = async (roleId?: number | string) => {
 watch(
     () => props.permissOptions,
     (val) => {
-        if (val?.id) {
-            loadMenuTree(val.id);
-        } else {
-            treeData.value = [];
-            syncCheckedKeys([]);
-        }
+        loadMenuTree(typeof val?.code === 'string' ? val.code : undefined);
     },
     { immediate: true, deep: true }
 );

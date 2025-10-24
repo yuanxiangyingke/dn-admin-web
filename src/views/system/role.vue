@@ -224,12 +224,15 @@ const handleDelete = async (row: RoleRow) => {
 };
 
 const visible2 = ref(false);
-const permissOptions = ref<{ id?: number | string; permissionIds: Array<string | number> }>({ permissionIds: [] });
+const permissOptions = ref<{ id?: number | string; code?: string; permissionIds: Array<string | number> }>({
+    permissionIds: [],
+});
 
 const handlePermission = (row: RoleRow) => {
     visible2.value = true;
     permissOptions.value = {
         id: row.id,
+        code: typeof row.code === 'string' ? row.code : undefined,
         permissionIds: Array.isArray(row.permissionIds) ? row.permissionIds : [],
     };
 };

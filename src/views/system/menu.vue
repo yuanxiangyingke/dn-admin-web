@@ -71,7 +71,7 @@ const menuList = computed(() => menuStore.menuList);
 const cascaderOptions = computed(() => getOptions(menuList.value));
 
 onMounted(() => {
-    menuStore.loadMenus(true).catch((error) => {
+    menuStore.loadMenus(menuStore.activeRoleCode, true).catch((error) => {
         console.error('Failed to refresh menu data', error);
     });
 });
