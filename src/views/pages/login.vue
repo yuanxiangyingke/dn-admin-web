@@ -54,11 +54,14 @@
 import { ref, reactive } from 'vue';
 import { useTabsStore } from '@/store/tabs';
 import { usePermissStore } from '@/store/permiss';
+import { useMenuStore, collectMenuIds } from '@/store/menu';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import type { FormInstance, FormRules } from 'element-plus';
 import { login as loginApi } from '@/api/index';
+import type { MenuTreeNode } from '@/api/index';
 import type { AxiosError } from 'axios';
+import type { Menus } from '@/types/menu';
 
 interface LoginInfo {
     username: string;
@@ -86,6 +89,7 @@ const rules: FormRules = {
     password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
 };
 const permiss = usePermissStore();
+const menuStore = useMenuStore();
 const login = ref<FormInstance>();
 const loading = ref(false);
 const submitForm = async (formEl: FormInstance | undefined) => {
@@ -113,7 +117,7 @@ const submitForm = async (formEl: FormInstance | undefined) => {
             (userInfo?.nickname as string | undefined) ||
             (userInfo?.username as string | undefined) ||
             param.username;
-        const perms = Array.isArray(data?.perms) ? (data?.perms as string[]) : [];
+        const perms = Array.isArray(data?.perms) ? [...new Set(data?.perms as string[])] : [];
         const refreshToken = data?.refreshToken as string | undefined;
         const token = data?.token as string | undefined;
         if (token) {
@@ -128,11 +132,22 @@ const submitForm = async (formEl: FormInstance | undefined) => {
         localStorage.setItem('user_info', JSON.stringify(userInfo));
         const fallbackPerms =
             permiss.defaultList[param.username === 'admin' ? 'admin' : 'user'] || [];
-        const resolvedPerms = perms.length ? perms : fallbackPerms;
-        permiss.handleSet(resolvedPerms);
-        if (Array.isArray(data?.menus)) {
-            localStorage.setItem('menus', JSON.stringify(data?.menus));
+        let currentMenus: Menus[] =
+            Array.isArray(data?.menus) && data.menus.length
+                ? menuStore.replaceWithServerMenus(data.menus as MenuTreeNode[])
+                : menuStore.menus;
+        if (!currentMenus.length) {
+            currentMenus = await menuStore.loadMenus(true);
         }
+        if (!currentMenus.length) {
+            currentMenus = menuStore.menuList;
+        }
+        const menuIds = collectMenuIds(currentMenus);
+        const resolvedPerms = new Set<string>([
+            ...(menuIds.length ? menuIds : fallbackPerms),
+            ...perms.map((item) => String(item)),
+        ]);
+        permiss.handleSet(Array.from(resolvedPerms));
         if (checked.value) {
             localStorage.setItem('login-param', JSON.stringify(param));
         } else {

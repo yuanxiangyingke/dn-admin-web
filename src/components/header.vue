@@ -67,11 +67,13 @@ import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useSidebarStore } from '../store/sidebar';
 import { usePermissStore } from '@/store/permiss';
+import { useMenuStore } from '@/store/menu';
 import { logout as logoutApi } from '@/api/index';
 import { ElMessage } from 'element-plus';
 import imgurl from '../assets/img/img.jpg';
 
 const permiss = usePermissStore();
+const menuStore = useMenuStore();
 let parsedUser: Record<string, any> | null = null;
 const storedUser = localStorage.getItem('user_info');
 if (storedUser) {
@@ -105,6 +107,7 @@ const clearAuthState = () => {
         localStorage.removeItem(key)
     );
     permiss.handleSet([]);
+    menuStore.clear();
     username.value = '未登录';
     avatarUrl.value = imgurl;
 };

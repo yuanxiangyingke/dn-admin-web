@@ -180,6 +180,27 @@ export const updateRolePermissions = (
     });
 };
 
+export interface MenuTreeNode {
+    id: number | string;
+    title: string;
+    permissionCode?: string | null;
+    permissionId?: number;
+    assigned?: boolean;
+    children?: MenuTreeNode[];
+    [key: string]: unknown;
+}
+
+export const fetchMenuTree = (
+    roleId?: number | string
+): Promise<AxiosResponse<ApiResponse<MenuTreeNode[]>>> => {
+    return request<ApiResponse<MenuTreeNode[]>>({
+        url: '/api/menus/tree',
+        method: 'get',
+        params: roleId !== undefined ? { roleId } : undefined,
+        baseURL: API_BASE_URL,
+    });
+};
+
 export const login = (payload: LoginPayload): Promise<AxiosResponse<ApiResponse<LoginResult>>> => {
     return request<ApiResponse<LoginResult>>({
         url: '/api/auth/login',

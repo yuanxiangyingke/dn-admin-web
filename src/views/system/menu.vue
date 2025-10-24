@@ -1,7 +1,7 @@
 <template>
     <div>
         <div class="container">
-            <TableCustom :columns="columns" :tableData="menuData" row-key="index" :has-pagination="false"
+            <TableCustom :columns="columns" :tableData="menuList" row-key="index" :has-pagination="false"
                 :viewFunc="handleView" :delFunc="handleDelete" :editFunc="handleEdit">
                 <template #toolbarBtn>
                     <el-button type="warning" :icon="CirclePlusFilled" @click="visible = true">新增</el-button>
@@ -36,14 +36,14 @@
 </template>
 
 <script setup lang="ts" name="system-menu">
-import { ref } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { ElMessage } from 'element-plus';
 import { CirclePlusFilled } from '@element-plus/icons-vue';
 import { Menus } from '@/types/menu';
 import TableCustom from '@/components/table-custom.vue';
 import TableDetail from '@/components/table-detail.vue';
 import { FormOption } from '@/types/form-option';
-import { menuData } from '@/components/menu';
+import { useMenuStore } from '@/store/menu';
 
 // 表格相关
 let columns = ref([
@@ -66,7 +66,15 @@ const getOptions = (data: any) => {
         return a
     })
 }
-const cascaderOptions = ref(getOptions(menuData));
+const menuStore = useMenuStore();
+const menuList = computed(() => menuStore.menuList);
+const cascaderOptions = computed(() => getOptions(menuList.value));
+
+onMounted(() => {
+    menuStore.loadMenus(true).catch((error) => {
+        console.error('Failed to refresh menu data', error);
+    });
+});
 
 
 // 新增/编辑弹窗相关
