@@ -190,11 +190,13 @@ export interface MenuTreeNode {
     [key: string]: unknown;
 }
 
-export const fetchMenuTree = (roleCode: string): Promise<AxiosResponse<ApiResponse<MenuTreeNode[]>>> => {
+export const fetchMenuTree = (
+    roleId?: number | string
+): Promise<AxiosResponse<ApiResponse<MenuTreeNode[]>>> => {
     return request<ApiResponse<MenuTreeNode[]>>({
         url: '/api/menus/tree',
         method: 'get',
-        params: { roleCode },
+        params: roleId !== undefined ? { roleId } : undefined,
         baseURL: API_BASE_URL,
     });
 };

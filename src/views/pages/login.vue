@@ -117,10 +117,6 @@ const submitForm = async (formEl: FormInstance | undefined) => {
             (userInfo?.nickname as string | undefined) ||
             (userInfo?.username as string | undefined) ||
             param.username;
-        const roleCodes = Array.isArray(userInfo?.roles)
-            ? (userInfo.roles.filter((item: unknown) => typeof item === 'string' && item.trim().length) as string[])
-            : [];
-        const primaryRole = roleCodes.length ? roleCodes[0].trim() : null;
         const perms = Array.isArray(data?.perms) ? [...new Set(data?.perms as string[])] : [];
         const refreshToken = data?.refreshToken as string | undefined;
         const token = data?.token as string | undefined;
@@ -134,17 +130,14 @@ const submitForm = async (formEl: FormInstance | undefined) => {
         }
         localStorage.setItem('vuems_name', displayName);
         localStorage.setItem('user_info', JSON.stringify(userInfo));
-        menuStore.setActiveRole(primaryRole);
         const fallbackPerms =
             permiss.defaultList[param.username === 'admin' ? 'admin' : 'user'] || [];
         let currentMenus: Menus[] =
             Array.isArray(data?.menus) && data.menus.length
-                ? menuStore.replaceWithServerMenus(data.menus as MenuTreeNode[], primaryRole)
+                ? menuStore.replaceWithServerMenus(data.menus as MenuTreeNode[])
                 : menuStore.menus;
-        if (!currentMenus.length && primaryRole) {
-            currentMenus = await menuStore.loadMenus(primaryRole, true);
-        } else if (!currentMenus.length) {
-            currentMenus = await menuStore.loadMenus(undefined, true);
+        if (!currentMenus.length) {
+            currentMenus = await menuStore.loadMenus(true);
         }
         if (!currentMenus.length) {
             currentMenus = menuStore.menuList;

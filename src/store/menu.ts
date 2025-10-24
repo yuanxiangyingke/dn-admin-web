@@ -4,7 +4,6 @@ import type { Menus } from '@/types/menu';
 import { menuData as defaultMenuData } from '@/components/menu';
 
 const STORAGE_KEY = 'menus';
-const ACTIVE_ROLE_KEY = 'active_role_code';
 
 const readMenusFromStorage = (): Menus[] => {
     const cached = localStorage.getItem(STORAGE_KEY);
@@ -20,27 +19,6 @@ const readMenusFromStorage = (): Menus[] => {
         console.error('Failed to parse cached menus', error);
     }
     return [];
-};
-
-const readRoleCodeFromStorage = (): string | null => {
-    const cachedRole = localStorage.getItem(ACTIVE_ROLE_KEY);
-    if (cachedRole && cachedRole.trim().length) {
-        return cachedRole.trim();
-    }
-    const storedUser = localStorage.getItem('user_info');
-    if (storedUser) {
-        try {
-            const parsed = JSON.parse(storedUser);
-            const roles = Array.isArray(parsed?.roles) ? parsed.roles : [];
-            const firstRole = roles.find((item: unknown) => typeof item === 'string' && item.trim().length);
-            if (typeof firstRole === 'string') {
-                return firstRole.trim();
-            }
-        } catch (error) {
-            console.error('Failed to parse stored user info when resolving role code', error);
-        }
-    }
-    return null;
 };
 
 const normalizeMenuTree = (nodes: MenuTreeNode[] = []): Menus[] => {
@@ -89,7 +67,6 @@ export const useMenuStore = defineStore('menu', {
         menus: readMenusFromStorage(),
         loading: false,
         initialized: false,
-        activeRoleCode: readRoleCodeFromStorage(),
     }),
     getters: {
         menuList: (state): Menus[] => {
@@ -111,52 +88,29 @@ export const useMenuStore = defineStore('menu', {
             this.initialized = true;
             localStorage.setItem(STORAGE_KEY, JSON.stringify(menus));
         },
-        setActiveRole(roleCode: string | null) {
-            const normalized = roleCode && roleCode.trim().length ? roleCode.trim() : null;
-            this.activeRoleCode = normalized;
-            if (normalized) {
-                localStorage.setItem(ACTIVE_ROLE_KEY, normalized);
-            } else {
-                localStorage.removeItem(ACTIVE_ROLE_KEY);
-            }
-        },
-        replaceWithServerMenus(nodes: MenuTreeNode[], roleCode?: string | null) {
+        replaceWithServerMenus(nodes: MenuTreeNode[]) {
             const normalized = normalizeMenuTree(nodes);
             this.setMenus(normalized);
-            if (roleCode) {
-                this.setActiveRole(roleCode);
-            }
             return normalized;
         },
         clear() {
             this.menus = [];
             this.initialized = false;
             localStorage.removeItem(STORAGE_KEY);
-            this.setActiveRole(null);
         },
-        async loadMenus(roleCode?: string | null, force = false) {
-            const normalizedRole =
-                (roleCode && roleCode.trim().length ? roleCode.trim() : null) ??
-                this.activeRoleCode ??
-                readRoleCodeFromStorage();
-            if (!normalizedRole) {
-                this.initialized = true;
-                this.menus = [];
-                return this.menus;
-            }
-            if (!force && this.initialized && this.menus.length && this.activeRoleCode === normalizedRole) {
-                return this.menus;
-            }
+        async loadMenus(force = false) {
             if (this.loading) {
+                return this.menus;
+            }
+            if (!force && this.initialized && this.menus.length) {
                 return this.menus;
             }
             this.loading = true;
             try {
-                const response = await fetchMenuTree(normalizedRole);
+                const response = await fetchMenuTree();
                 const payload = response.data?.data ?? [];
                 const normalized = normalizeMenuTree(payload);
                 this.setMenus(normalized);
-                this.setActiveRole(normalizedRole);
                 return normalized;
             } catch (error) {
                 console.error('Failed to load menu tree', error);
