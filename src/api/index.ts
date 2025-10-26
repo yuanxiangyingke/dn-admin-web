@@ -170,12 +170,12 @@ export const deleteRole = (
 
 export const updateRolePermissions = (
     id: number | string,
-    permissionIds: Array<number | string>
+    permissionCodes: Array<string | number>
 ): Promise<AxiosResponse<ApiResponse<Record<string, unknown>>>> => {
     return request<ApiResponse<Record<string, unknown>>>({
         url: `/api/roles/${id}/permissions`,
-        method: 'put',
-        data: { permissionIds },
+        method: 'patch',
+        data: { permissionCodes },
         baseURL: API_BASE_URL,
     });
 };
@@ -190,13 +190,32 @@ export interface MenuTreeNode {
     [key: string]: unknown;
 }
 
-export const fetchMenuTree = (
-    roleId?: number | string
-): Promise<AxiosResponse<ApiResponse<MenuTreeNode[]>>> => {
+export const fetchMenuTree = (): Promise<AxiosResponse<ApiResponse<MenuTreeNode[]>>> => {
     return request<ApiResponse<MenuTreeNode[]>>({
         url: '/api/menus/tree',
         method: 'get',
-        params: roleId !== undefined ? { roleId } : undefined,
+        baseURL: API_BASE_URL,
+    });
+};
+
+export const fetchRoleMenuTree = (
+    roleId: number | string
+): Promise<AxiosResponse<ApiResponse<MenuTreeNode[]>>> => {
+    return request<ApiResponse<MenuTreeNode[]>>({
+        url: '/api/menus/role-tree',
+        method: 'get',
+        params: { roleId },
+        baseURL: API_BASE_URL,
+    });
+};
+
+export const fetchUserMenuTree = (
+    userId: number | string
+): Promise<AxiosResponse<ApiResponse<MenuTreeNode[]>>> => {
+    return request<ApiResponse<MenuTreeNode[]>>({
+        url: '/api/menus/user-tree',
+        method: 'get',
+        params: { userId },
         baseURL: API_BASE_URL,
     });
 };

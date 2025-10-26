@@ -58,7 +58,7 @@ interface RoleRow {
     code: string;
     name: string;
     description?: string;
-    permissionIds: Array<string | number>;
+    permissionCodes: string[];
     [key: string]: unknown;
 }
 
@@ -101,20 +101,25 @@ const getData = async () => {
             page.total = payload?.total ?? list.length ?? 0;
         }
         tableData.value = list.map((item: Record<string, any>) => {
-            const permissions = Array.isArray(item.permissionIds)
+            const permissionsSource = Array.isArray(item.permissionCodes)
+                ? item.permissionCodes
+                : Array.isArray(item.permissionIds)
                 ? item.permissionIds
                 : Array.isArray(item.permissions)
-                ? item.permissions.map((perm: any) => perm?.id ?? perm?.code ?? perm)
+                ? item.permissions.map((perm: any) => perm?.code ?? perm?.id ?? perm)
                 : Array.isArray(item.permiss)
                 ? item.permiss
                 : [];
+            const permissionCodes = permissionsSource
+                .map((val: any) => (val != null ? String(val) : ''))
+                .filter((val: string): val is string => val.length > 0);
             return {
                 ...item,
                 id: item.id,
                 code: item.code ?? item.key ?? '',
                 name: item.name ?? '',
                 description: item.description ?? '',
-                permissionIds: permissions.map((val: any) => val?.toString()).filter(Boolean),
+                permissionCodes,
             };
         });
     } catch (error) {
@@ -156,7 +161,7 @@ const handleEdit = (row: RoleRow) => {
 };
 
 const handleCreate = () => {
-    rowData.value = { permissionIds: [] };
+    rowData.value = { permissionCodes: [] };
     isEdit.value = false;
     visible.value = true;
 };
@@ -204,9 +209,12 @@ const handleView = (row: RoleRow) => {
         { prop: 'name', label: '角色名称' },
         { prop: 'description', label: '描述', value: row.description || '-' },
         {
-            prop: 'permissionIds',
-            label: '权限ID',
-            value: Array.isArray(row.permissionIds) && row.permissionIds.length ? row.permissionIds.join(', ') : '-',
+            prop: 'permissionCodes',
+            label: '权限编码',
+            value:
+                Array.isArray(row.permissionCodes) && row.permissionCodes.length
+                    ? row.permissionCodes.join(', ')
+                    : '-',
         },
     ];
     visible1.value = true;
@@ -224,13 +232,13 @@ const handleDelete = async (row: RoleRow) => {
 };
 
 const visible2 = ref(false);
-const permissOptions = ref<{ id?: number | string; permissionIds: Array<string | number> }>({ permissionIds: [] });
+const permissOptions = ref<{ id?: number | string; permissionCodes: string[] }>({ permissionCodes: [] });
 
 const handlePermission = (row: RoleRow) => {
     visible2.value = true;
     permissOptions.value = {
         id: row.id,
-        permissionIds: Array.isArray(row.permissionIds) ? row.permissionIds : [],
+        permissionCodes: Array.isArray(row.permissionCodes) ? row.permissionCodes : [],
     };
 };
 

@@ -16,7 +16,7 @@
 <script setup lang="ts">
 import { nextTick, ref, watch } from 'vue';
 import { ElMessage, ElTree } from 'element-plus';
-import { fetchMenuTree, updateRolePermissions } from '@/api';
+import { fetchRoleMenuTree, updateRolePermissions } from '@/api';
 import type { AxiosError } from 'axios';
 
 const props = defineProps({
@@ -39,51 +39,52 @@ interface TreeNode {
 
 const treeData = ref<TreeNode[]>([]);
 const checkedKeys = ref<string[]>([]);
-const permissionMap = ref<Record<string, number>>({});
+const permissionMap = ref<Record<string, string>>({});
 const loading = ref(false);
 const submitLoading = ref(false);
 const tree = ref<InstanceType<typeof ElTree>>();
 
-const resolveNodeKey = (node: any): string => {
-    const permissionId = node.permissionId ?? node.permission?.id;
-    if (permissionId !== undefined && permissionId !== null) {
-        return String(permissionId);
+const resolvePermissionCode = (node: any): string | undefined => {
+    if (typeof node.permissionCode === 'string' && node.permissionCode.length) {
+        return node.permissionCode;
     }
-    return String(node.id);
+    const metaCode = node.meta?.permissionCode;
+    if (typeof metaCode === 'string' && metaCode.length) {
+        return metaCode;
+    }
+    const nestedCode = node.permission?.code;
+    if (typeof nestedCode === 'string' && nestedCode.length) {
+        return nestedCode;
+    }
+    return undefined;
 };
 
-const hasPermission = (node: any): boolean => {
-    const permissionId = node.permissionId ?? node.permission?.id;
-    return permissionId !== undefined && permissionId !== null;
+const resolveNodeKey = (node: any): string => {
+    const code = resolvePermissionCode(node);
+    if (code) {
+        return code;
+    }
+    return `menu-${node.id}`;
 };
 
-const transformTree = (nodes: any[]): TreeNode[] => {
+const transformTree = (nodes: any[], assignedKeys: string[] = []): TreeNode[] => {
     return nodes.map((node) => {
         const key = resolveNodeKey(node);
-        if (hasPermission(node)) {
-            permissionMap.value[key] = Number(node.permissionId ?? node.permission?.id);
+        const permissionCode = resolvePermissionCode(node);
+        if (permissionCode) {
+            permissionMap.value[key] = permissionCode;
         }
-        const children = Array.isArray(node.children) ? transformTree(node.children) : [];
+        if (node.assigned === true && permissionCode) {
+            assignedKeys.push(key);
+        }
+        const children = Array.isArray(node.children) ? transformTree(node.children, assignedKeys) : [];
         return {
             id: key,
             label: node.title ?? node.name ?? node.permissionCode ?? `菜单 ${node.id}`,
-            disabled: !hasPermission(node) && children.length === 0,
+            disabled: !permissionCode,
             children,
         };
     });
-};
-
-const collectAssignedKeys = (nodes: any[]): string[] => {
-    const keys: string[] = [];
-    nodes.forEach((node) => {
-        if (node.assigned && hasPermission(node)) {
-            keys.push(resolveNodeKey(node));
-        }
-        if (Array.isArray(node.children) && node.children.length > 0) {
-            keys.push(...collectAssignedKeys(node.children));
-        }
-    });
-    return keys;
 };
 
 const syncCheckedKeys = (keys: string[]) => {
@@ -93,15 +94,29 @@ const syncCheckedKeys = (keys: string[]) => {
     });
 };
 
-const loadMenuTree = async (roleId?: number | string) => {
+const applyRolePermissionKeys = () => {
+    const codes = Array.isArray(props.permissOptions?.permissionCodes)
+        ? props.permissOptions.permissionCodes
+        : [];
+    const keys = codes
+        .map((item: string | number) => item?.toString())
+        .filter((item): item is string => Boolean(item));
+    syncCheckedKeys(keys);
+};
+
+const loadRoleMenuTree = async (roleId: number | string) => {
     loading.value = true;
     permissionMap.value = {};
     try {
-        const response = await fetchMenuTree(roleId);
+        const response = await fetchRoleMenuTree(roleId);
         const nodes = response.data.data ?? [];
-        treeData.value = transformTree(nodes);
-        const assignedKeys = collectAssignedKeys(nodes);
-        syncCheckedKeys(assignedKeys);
+        const assignedKeys: string[] = [];
+        treeData.value = transformTree(nodes, assignedKeys);
+        if (assignedKeys.length) {
+            syncCheckedKeys(assignedKeys);
+        } else {
+            applyRolePermissionKeys();
+        }
     } catch (error) {
         const err = error as AxiosError<{ message?: string }>;
         ElMessage.error(err.response?.data?.message || err.message || '加载菜单权限失败');
@@ -114,9 +129,9 @@ const loadMenuTree = async (roleId?: number | string) => {
 
 watch(
     () => props.permissOptions,
-    (val) => {
+    async (val) => {
         if (val?.id) {
-            loadMenuTree(val.id);
+            await loadRoleMenuTree(val.id);
         } else {
             treeData.value = [];
             syncCheckedKeys([]);
@@ -133,12 +148,23 @@ const onSubmit = async () => {
         ...(tree.value?.getCheckedKeys(false) as Array<string | number>),
         ...(tree.value?.getHalfCheckedKeys() as Array<string | number>),
     ].map((item) => item.toString());
-    const permissionIds = rawKeys
-        .map((key) => permissionMap.value[key] ?? Number(key))
-        .filter((id) => typeof id === 'number' && !Number.isNaN(id));
+    const fallbackKeys =
+            rawKeys.length > 0
+                ? rawKeys
+                : checkedKeys.value.length > 0
+                ? checkedKeys.value
+                : Array.isArray(props.permissOptions.permissionCodes)
+                ? props.permissOptions.permissionCodes
+                      .map((item: string | number) => item?.toString())
+                      .filter((key): key is string => Boolean(key))
+                : [];
+    const distinctKeys = Array.from(new Set(fallbackKeys));
+    const permissionCodes = distinctKeys
+        .map((key) => permissionMap.value[key] ?? key)
+        .filter((code) => typeof code === 'string' && code.length > 0);
     submitLoading.value = true;
     try {
-        await updateRolePermissions(props.permissOptions.id, permissionIds);
+        await updateRolePermissions(props.permissOptions.id, permissionCodes);
         ElMessage.success('权限保存成功');
         emit('success');
     } catch (error) {
