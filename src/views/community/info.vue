@@ -20,8 +20,10 @@
                         {{ rows.status === 1 ? '启用' : '停用' }}
                     </el-tag>
                 </template>
-                <template #ratingAvg="{ rows }">
-                    {{ typeof rows.ratingAvg === 'number' ? rows.ratingAvg.toFixed(1) : '-' }}
+                <template #summary="{ rows }">
+                    <span class="summary-cell">
+                        {{ rows.summary || '-' }}
+                    </span>
                 </template>
             </TableCustom>
         </div>
@@ -69,12 +71,14 @@ const handleSearch = () => {
 const columns = ref([
     { type: 'selection' },
     { type: 'index', label: '序号', width: 55, align: 'center' },
-    { prop: 'name', label: '社区名称' },
+    { prop: 'name', label: '社区名称', align: 'left' },
     { prop: 'shortName', label: '简称' },
     { prop: 'city', label: '城市' },
     { prop: 'province', label: '省份' },
+    { prop: 'country', label: '国家/地区' },
+    { prop: 'address', label: '详细地址', align: 'left', width: 260 },
     { prop: 'status', label: '状态' },
-    { prop: 'ratingAvg', label: '评分' },
+    { prop: 'summary', label: '摘要', align: 'left', width: 260 },
     { prop: 'operator', label: '操作', width: 220 },
 ]);
 
@@ -158,14 +162,19 @@ const handleView = (row: CommunityRecord) => {
         { prop: 'name', label: '社区名称' },
         { prop: 'shortName', label: '简称' },
         { prop: 'nameEn', label: '英文名' },
+        { prop: 'status', label: '状态', value: row.status === 1 ? '启用' : '停用' },
         { prop: 'city', label: '城市' },
         { prop: 'province', label: '省份' },
         { prop: 'country', label: '国家' },
         { prop: 'address', label: '地址' },
-        { prop: 'ratingAvg', label: '评分' },
-        { prop: 'ratingCount', label: '评分数量' },
+        { prop: 'timezone', label: '时区' },
+        { prop: 'lifeFacilities', label: '生活设施' },
         { prop: 'summary', label: '摘要' },
         { prop: 'tags', label: '标签', value: Array.isArray(row.tags) ? row.tags.join(', ') : '-' },
+        { prop: 'refundPolicy', label: '退改政策' },
+        { prop: 'description', label: '社区描述' },
+        { prop: 'createdAt', label: '创建时间' },
+        { prop: 'updatedAt', label: '更新时间' },
     ];
     visibleDetail.value = true;
 };
@@ -181,5 +190,13 @@ const handleDelete = () => {
     margin: auto;
     width: 40px;
     height: 40px;
+}
+
+.summary-cell {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    line-height: 20px;
 }
 </style>
