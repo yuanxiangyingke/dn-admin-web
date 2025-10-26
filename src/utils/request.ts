@@ -29,7 +29,7 @@ service.interceptors.response.use(
             (error.response?.data as { message?: string } | undefined)?.message ||
             error.message ||
             '请求失败';
-        if (status === 401 && !isLoginRequest) {
+        if ((status === 401 || status === 403) && !isLoginRequest) {
             ElMessage.error('登录已过期，请重新登录');
             ['auth_token', 'refresh_token', 'perms', 'vuems_name', 'user_info', 'menus'].forEach((key) =>
                 localStorage.removeItem(key)

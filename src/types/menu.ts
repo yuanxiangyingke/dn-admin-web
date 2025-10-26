@@ -6,4 +6,5 @@ export interface Menus {
     title: string;
     permiss?: string;
     children?: Menus[];
+    path?: string;
 }

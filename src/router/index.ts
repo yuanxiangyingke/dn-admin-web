@@ -1,14 +1,11 @@
 import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router';
 import { usePermissStore } from '../store/permiss';
+import { useMenuStore } from '@/store/menu';
 import Home from '../views/home.vue';
 import NProgress from 'nprogress';
 import 'nprogress/nprogress.css';
 
 const routes: RouteRecordRaw[] = [
-    {
-        path: '/',
-        redirect: '/dashboard',
-    },
     {
         path: '/',
         name: 'Home',
@@ -272,15 +269,29 @@ const router = createRouter({
     routes,
 });
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
     NProgress.start();
     const token = localStorage.getItem('auth_token');
     const permiss = usePermissStore();
+    const menuStore = useMenuStore();
 
     if (!token && to.meta.noAuth !== true) {
         next('/login');
-    } else if (typeof to.meta.permiss == 'string' && !permiss.key.includes(to.meta.permiss)) {
-        // 如果没有权限，则进入403
+        NProgress.done();
+        return;
+    }
+
+    if (to.path === '/' || to.path === '') {
+        if (!menuStore.initialized || !menuStore.menus.length) {
+            await menuStore.loadMenus(true);
+        }
+        const firstRoute = menuStore.loadFirstRouteFromStorage();
+        next(firstRoute);
+        NProgress.done();
+        return;
+    }
+
+    if (typeof to.meta.permiss === 'string' && !permiss.key.includes(to.meta.permiss)) {
         next('/403');
     } else {
         next();

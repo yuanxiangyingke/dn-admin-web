@@ -41,6 +41,7 @@ const normalizeMenuTree = (nodes: MenuTreeNode[] = []): Menus[] => {
                     icon,
                     permiss: permissionCode,
                     children,
+                    path: typeof item.path === 'string' && item.path.length ? item.path : undefined,
                 };
             });
     return walk(nodes);
@@ -67,6 +68,7 @@ export const useMenuStore = defineStore('menu', {
         menus: readMenusFromStorage(),
         loading: false,
         initialized: false,
+        firstAccessibleRoute: '/dashboard',
     }),
     getters: {
         menuList: (state): Menus[] => {
@@ -81,12 +83,34 @@ export const useMenuStore = defineStore('menu', {
             }
             return flattenMenuPerms(defaultMenuData);
         },
+        firstMenuPath(): string {
+            const findFirst = (items: Menus[]): string | null => {
+                for (const item of items) {
+                    if (item.index && !item.children?.length) {
+                        return item.index;
+                    }
+                    if (item.children?.length) {
+                        const childPath = findFirst(item.children);
+                        if (childPath) {
+                            return childPath;
+                        }
+                    }
+                }
+                return null;
+            };
+            return findFirst(this.menus) ?? '/dashboard';
+        },
     },
     actions: {
         setMenus(menus: Menus[]) {
             this.menus = menus;
             this.initialized = true;
             localStorage.setItem(STORAGE_KEY, JSON.stringify(menus));
+            const firstPath = this.getFirstPathFromMenus(menus);
+            if (firstPath) {
+                this.firstAccessibleRoute = firstPath;
+                localStorage.setItem('first_route', firstPath);
+            }
         },
         replaceWithServerMenus(nodes: MenuTreeNode[]) {
             const normalized = normalizeMenuTree(nodes);
@@ -119,6 +143,30 @@ export const useMenuStore = defineStore('menu', {
             } finally {
                 this.loading = false;
             }
+        },
+        getFirstPathFromMenus(menus: Menus[]): string | null {
+            const stack: Menus[] = [...menus];
+            while (stack.length) {
+                const node = stack.shift();
+                if (!node) continue;
+                if (node.index && (!node.children || node.children.length === 0)) {
+                    return node.index;
+                }
+                if (node.children && node.children.length) {
+                    stack.unshift(...node.children);
+                }
+            }
+            return null;
+        },
+        loadFirstRouteFromStorage() {
+            const stored = localStorage.getItem('first_route');
+            if (stored) {
+                this.firstAccessibleRoute = stored;
+            } else {
+                const firstPath = this.getFirstPathFromMenus(this.menus.length ? this.menus : defaultMenuData);
+                this.firstAccessibleRoute = firstPath ?? '/dashboard';
+            }
+            return this.firstAccessibleRoute;
         },
     },
 });
