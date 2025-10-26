@@ -4,7 +4,7 @@
             <TableCustom :columns="columns" :tableData="menuList" row-key="index" :has-pagination="false"
                 :viewFunc="handleView" :delFunc="handleDelete" :editFunc="handleEdit">
                 <template #toolbarBtn>
-                    <el-button type="warning" :icon="CirclePlusFilled" @click="visible = true">新增</el-button>
+                    <el-button type="warning" :icon="CirclePlusFilled" @click="handleCreate">新增</el-button>
                 </template>
                 <template #icon="{ rows }">
                     <el-icon>
@@ -42,8 +42,12 @@ import { CirclePlusFilled } from '@element-plus/icons-vue';
 import { Menus } from '@/types/menu';
 import TableCustom from '@/components/table-custom.vue';
 import TableDetail from '@/components/table-detail.vue';
+import TableEdit from '@/components/table-edit.vue';
 import { FormOption } from '@/types/form-option';
 import { useMenuStore } from '@/store/menu';
+import { createMenuItem } from '@/api/index';
+import type { MenuPayload } from '@/api/index';
+import type { AxiosError } from 'axios';
 
 // 表格相关
 let columns = ref([
@@ -83,7 +87,8 @@ let options = ref<FormOption>({
     span: 12,
     list: [
         { type: 'input', label: '菜单名称', prop: 'title', required: true },
-        { type: 'input', label: '路由路径', prop: 'index', required: true },
+        { type: 'input', label: '路由路径', prop: 'index', required: false },
+        { type: 'input', label: '组件路径', prop: 'component' },
         { type: 'input', label: '图标', prop: 'icon' },
         { type: 'input', label: '权限标识', prop: 'permiss' },
         { type: 'parent', label: '父菜单', prop: 'parent' },
@@ -91,19 +96,62 @@ let options = ref<FormOption>({
 })
 const visible = ref(false);
 const isEdit = ref(false);
-const rowData = ref<any>({});
+const rowData = ref<any>({ title: '', index: '', component: '', icon: '', permiss: '', pid: null });
+const submitting = ref(false);
+const handleCreate = () => {
+    rowData.value = { title: '', index: '', component: '', icon: '', permiss: '', pid: null };
+    isEdit.value = false;
+    visible.value = true;
+};
 const handleEdit = (row: Menus) => {
     rowData.value = { ...row };
     isEdit.value = true;
     visible.value = true;
 };
-const updateData = () => {
-    closeDialog();
+const resolveParentId = (value: unknown): number | string | null => {
+    if (Array.isArray(value) && value.length) {
+        return value[value.length - 1] ?? null;
+    }
+    return (value as number | string | null) ?? null;
+};
+
+const updateData = async (formValue: Record<string, any>) => {
+    if (isEdit.value) {
+        ElMessage.warning('菜单编辑功能暂未开放');
+        return;
+    }
+    if (submitting.value) return;
+    const payload: MenuPayload = {
+        parentId: resolveParentId(formValue.pid ?? rowData.value.pid),
+        title: formValue.title?.trim(),
+        path: formValue.index?.trim() || null,
+        component: formValue.component?.trim() || formValue.index?.trim() || null,
+        icon: formValue.icon?.trim() || null,
+        permissionCode: formValue.permiss?.trim() || null,
+        type: 0,
+        orderNum: 0,
+        keepAlive: true,
+        visible: true,
+        meta: {},
+    };
+    submitting.value = true;
+    try {
+        await createMenuItem(payload);
+        ElMessage.success('新增菜单成功');
+        await menuStore.loadMenus(true);
+        closeDialog();
+    } catch (error) {
+        const err = error as AxiosError<{ message?: string }>;
+        ElMessage.error(err.response?.data?.message || err.message || '新增菜单失败');
+    } finally {
+        submitting.value = false;
+    }
 };
 
 const closeDialog = () => {
     visible.value = false;
     isEdit.value = false;
+    rowData.value = { title: '', index: '', component: '', icon: '', permiss: '', pid: null };
 };
 
 // 查看详情弹窗相关

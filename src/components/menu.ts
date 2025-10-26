@@ -196,6 +196,20 @@ export const menuData: Menus[] = [
         permiss: 'menu:theme:view',
     },
     {
+        id: 'community',
+        icon: 'OfficeBuilding',
+        index: 'community',
+        title: '社区管理',
+        children: [
+            {
+                id: 'community-info',
+                pid: 'community',
+                index: '/community/info',
+                title: '社区信息管理',
+            },
+        ],
+    },
+    {
         id: '6',
         icon: 'DocumentAdd',
         index: '6',

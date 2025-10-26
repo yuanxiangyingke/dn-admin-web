@@ -219,6 +219,14 @@ const routes: RouteRecordRaw[] = [
                 },
                 component: () => import(/* webpackChunkName: "statistic" */ '../views/element/statistic.vue'),
             },
+            {
+                path: '/community/info',
+                name: 'community-info',
+                meta: {
+                    title: '社区信息管理',
+                },
+                component: () => import(/* webpackChunkName: "community-info" */ '../views/community/info.vue'),
+            },
         ],
     },
     {

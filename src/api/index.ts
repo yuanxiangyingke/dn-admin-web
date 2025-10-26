@@ -198,6 +198,31 @@ export const fetchMenuTree = (): Promise<AxiosResponse<ApiResponse<MenuTreeNode[
     });
 };
 
+export interface MenuPayload {
+    parentId?: number | string | null;
+    title: string;
+    path?: string | null;
+    component?: string | null;
+    icon?: string | null;
+    type?: number;
+    orderNum?: number;
+    keepAlive?: boolean;
+    visible?: boolean;
+    permissionCode?: string | null;
+    meta?: Record<string, unknown>;
+}
+
+export const createMenuItem = (
+    payload: MenuPayload
+): Promise<AxiosResponse<ApiResponse<MenuTreeNode>>> => {
+    return request<ApiResponse<MenuTreeNode>>({
+        url: '/api/menus',
+        method: 'post',
+        data: payload,
+        baseURL: API_BASE_URL,
+    });
+};
+
 export const fetchRoleMenuTree = (
     roleId: number | string
 ): Promise<AxiosResponse<ApiResponse<MenuTreeNode[]>>> => {
