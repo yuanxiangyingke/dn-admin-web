@@ -15,18 +15,13 @@
                 <template #toolbarBtn>
                     <el-button type="warning" :icon="CirclePlusFilled" @click="visible = true">新增社区</el-button>
                 </template>
-                <template #state="{ rows }">
-                    <el-tag :type="rows.state ? 'success' : 'warning'">
-                        {{ rows.state ? '运营中' : '维护中' }}
+                <template #status="{ rows }">
+                    <el-tag :type="rows.status === 1 ? 'success' : 'warning'">
+                        {{ rows.status === 1 ? '启用' : '停用' }}
                     </el-tag>
                 </template>
-                <template #thumb="{ rows }">
-                    <el-image
-                        class="table-td-thumb"
-                        :src="rows.thumb"
-                        :z-index="10"
-                        :preview-src-list="[rows.thumb]"
-                        preview-teleported />
+                <template #ratingAvg="{ rows }">
+                    {{ typeof rows.ratingAvg === 'number' ? rows.ratingAvg.toFixed(1) : '-' }}
                 </template>
             </TableCustom>
         </div>
@@ -46,11 +41,7 @@
         </el-dialog>
 
         <el-dialog title="社区详情" v-model="visibleDetail" width="700px" destroy-on-close>
-            <TableDetail :data="detailData">
-                <template #thumb="{ rows }">
-                    <el-image :src="rows.thumb"></el-image>
-                </template>
-            </TableDetail>
+            <TableDetail :data="detailData"></TableDetail>
         </el-dialog>
     </div>
 </template>
@@ -59,18 +50,18 @@
 import { ref, reactive } from 'vue';
 import { ElMessage } from 'element-plus';
 import { CirclePlusFilled } from '@element-plus/icons-vue';
-import { fetchData } from '@/api/index';
 import TableCustom from '@/components/table-custom.vue';
 import TableDetail from '@/components/table-detail.vue';
 import TableEdit from '@/components/table-edit.vue';
 import TableSearch from '@/components/table-search.vue';
-import type { TableItem } from '@/types/table';
 import type { FormOption, FormOptionList } from '@/types/form-option';
+import { fetchCommunityList, type CommunityRecord } from '@/api/index';
+import type { AxiosError } from 'axios';
 
 const query = reactive({
-    name: '',
+    keyword: '',
 });
-const searchOpt = ref<FormOptionList[]>([{ type: 'input', label: '社区名称：', prop: 'name' }]);
+const searchOpt = ref<FormOptionList[]>([{ type: 'input', label: '社区名称：', prop: 'keyword' }]);
 const handleSearch = () => {
     changePage(1);
 };
@@ -79,22 +70,41 @@ const columns = ref([
     { type: 'selection' },
     { type: 'index', label: '序号', width: 55, align: 'center' },
     { prop: 'name', label: '社区名称' },
-    { prop: 'money', label: '住户数量' },
-    { prop: 'thumb', label: '社区图标' },
-    { prop: 'state', label: '运行状态' },
-    { prop: 'operator', label: '操作', width: 250 },
+    { prop: 'shortName', label: '简称' },
+    { prop: 'city', label: '城市' },
+    { prop: 'province', label: '省份' },
+    { prop: 'status', label: '状态' },
+    { prop: 'ratingAvg', label: '评分' },
+    { prop: 'operator', label: '操作', width: 220 },
 ]);
 
 const page = reactive({
     index: 1,
     size: 10,
-    total: 200,
+    total: 0,
 });
-const tableData = ref<TableItem[]>([]);
+const tableData = ref<CommunityRecord[]>([]);
+const loading = ref(false);
 
 const getData = async () => {
-    const res = await fetchData();
-    tableData.value = res.data.list;
+    loading.value = true;
+    try {
+        const res = await fetchCommunityList({
+            page: page.index,
+            size: page.size,
+        });
+        const payload = res.data.data;
+        const list = payload?.list ?? [];
+        tableData.value = list;
+        page.total = payload?.total ?? list.length ?? 0;
+    } catch (error) {
+        const err = error as AxiosError<{ message?: string }>;
+        ElMessage.error(err.response?.data?.message || err.message || '加载社区数据失败');
+        tableData.value = [];
+        page.total = 0;
+    } finally {
+        loading.value = false;
+    }
 };
 getData();
 
@@ -104,13 +114,14 @@ const changePage = (val: number) => {
 };
 
 const options = ref<FormOption>({
-    labelWidth: '100px',
+    labelWidth: '120px',
     span: 24,
     list: [
         { type: 'input', label: '社区名称', prop: 'name', required: true },
-        { type: 'number', label: '住户数量', prop: 'money', required: true },
-        { type: 'switch', label: '运行状态', prop: 'state', activeText: '运营中', inactiveText: '维护中', required: true },
-        { type: 'upload', label: '社区图标', prop: 'thumb', required: true },
+        { type: 'input', label: '简称', prop: 'shortName' },
+        { type: 'input', label: '城市', prop: 'city' },
+        { type: 'input', label: '省份', prop: 'province' },
+        { type: 'switch', label: '状态', prop: 'status', activeText: '启用', inactiveText: '停用' },
     ],
 });
 
@@ -118,7 +129,7 @@ const visible = ref(false);
 const isEdit = ref(false);
 const rowData = ref<Record<string, any>>({});
 
-const handleEdit = (row: TableItem) => {
+const handleEdit = (row: CommunityRecord) => {
     rowData.value = { ...row };
     isEdit.value = true;
     visible.value = true;
@@ -126,7 +137,6 @@ const handleEdit = (row: TableItem) => {
 
 const updateData = () => {
     closeDialog();
-    getData();
 };
 
 const closeDialog = () => {
@@ -141,20 +151,27 @@ const detailData = ref({
     list: [] as Array<{ prop: string; label: string }>,
 });
 
-const handleView = (row: TableItem) => {
+const handleView = (row: CommunityRecord) => {
     detailData.value.row = { ...row };
     detailData.value.list = [
         { prop: 'id', label: '社区ID' },
         { prop: 'name', label: '社区名称' },
-        { prop: 'money', label: '住户数量' },
-        { prop: 'state', label: '运行状态' },
-        { prop: 'thumb', label: '社区图标' },
+        { prop: 'shortName', label: '简称' },
+        { prop: 'nameEn', label: '英文名' },
+        { prop: 'city', label: '城市' },
+        { prop: 'province', label: '省份' },
+        { prop: 'country', label: '国家' },
+        { prop: 'address', label: '地址' },
+        { prop: 'ratingAvg', label: '评分' },
+        { prop: 'ratingCount', label: '评分数量' },
+        { prop: 'summary', label: '摘要' },
+        { prop: 'tags', label: '标签', value: Array.isArray(row.tags) ? row.tags.join(', ') : '-' },
     ];
     visibleDetail.value = true;
 };
 
 const handleDelete = () => {
-    ElMessage.success('删除成功');
+    ElMessage.info('暂未开放删除功能');
 };
 </script>
 

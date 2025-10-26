@@ -223,6 +223,47 @@ export const createMenuItem = (
     });
 };
 
+export interface CommunityRecord {
+    id: number;
+    name: string;
+    shortName?: string | null;
+    nameEn?: string | null;
+    status?: number | null;
+    operatorUserId?: number | null;
+    city?: string | null;
+    province?: string | null;
+    country?: string | null;
+    address?: string | null;
+    latitude?: number | null;
+    longitude?: number | null;
+    timezone?: string | null;
+    summary?: string | null;
+    lifeFacilities?: string | null;
+    description?: string | null;
+    ratingAvg?: number | null;
+    ratingCount?: number | null;
+    tags?: string[] | null;
+    refundPolicy?: string | null;
+    createdAt?: string | null;
+    updatedAt?: string | null;
+}
+
+export interface CommunityQuery {
+    page?: number;
+    size?: number;
+}
+
+export const fetchCommunityList = (
+    params?: CommunityQuery
+): Promise<AxiosResponse<ApiResponse<PaginatedResult<CommunityRecord>>>> => {
+    return request<ApiResponse<PaginatedResult<CommunityRecord>>>({
+        url: '/api/communities',
+        method: 'get',
+        params,
+        baseURL: API_BASE_URL,
+    });
+};
+
 export const fetchRoleMenuTree = (
     roleId: number | string
 ): Promise<AxiosResponse<ApiResponse<MenuTreeNode[]>>> => {
