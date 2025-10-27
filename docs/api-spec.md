@@ -321,13 +321,13 @@
 
 ### 4.4 修改角色权限
 - **URL**：`PATCH /api/roles/{id}/permissions`
-- **说明**：只更新权限集合。
+- **说明**：只更新权限集合，按权限编码提交，服务端会校验并转换为权限 ID。
 
 **请求体**
 
 | 字段 | 类型 | 必填 | 说明 |
 | ---- | ---- | ---- | ---- |
-| `permissionIds` | array | 是 | 权限 ID 列表 |
+| `permissionCodes` | array | 是 | 权限编码列表，传空数组表示清空权限；不存在的编码会被忽略 |
 
 **响应**：更新后的 `RoleListDto`。
 
@@ -402,15 +402,19 @@
 
 **响应**：新建节点的菜单树结构。
 
-**错误场景**：404 父菜单不存在；400 权限码不存在或类型非法
+**额外规则**：若填写 `permissionCode` 且权限不存在，系统会自动创建同名权限（`name` 与 `code` 相同，类型记为 `menu`）。
+
+**错误场景**：404 父菜单不存在；400 类型非法
 
 ### 5.6 更新菜单
 - **URL**：`PUT /api/menus/{id}`
 - **说明**：更新菜单属性，所有字段可选。`parentId` 变更时禁止将节点移动到自己的子节点。
 
+**额外规则**：提供新的 `permissionCode` 时会执行同创建接口相同的自动建权限逻辑；传空字符串则清空关联。
+
 **错误场景**
 - 404：菜单或新父级不存在
-- 400：标题为空、类型非法、父节点循环引用、权限码不存在
+- 400：标题为空、类型非法、父节点循环引用
 
 **响应**：更新后的菜单节点。
 
@@ -440,7 +444,82 @@
 
 ---
 
-## 6. 状态字典与枚举 <a id="状态字典"></a>
+## 6. 社区管理
+
+### 6.1 查询社区列表
+- **URL**：`GET /api/communities`
+- **说明**：分页返回社区主档信息，单个条目包含下表所有字段。按创建时间倒序排序。
+
+**Query 参数**
+
+| 参数 | 类型 | 默认 | 说明 |
+| ---- | ---- | ---- | ---- |
+| `page` | number | 1 | 页码，最小 1 |
+| `size` | number | 10 | 每页条数，1-100 |
+
+**响应 `data.list` 项（CommunityDto）**
+
+| 字段 | 类型 | 说明 |
+| ---- | ---- | ---- |
+| `id` | number | 社区主键 |
+| `name` | string | 社区名称 |
+| `shortName` | string | 社区名称缩写 |
+| `nameEn` | string | 社区英文名 |
+| `status` | number | 状态 |
+| `operatorUserId` | number | 创建者用户 ID |
+| `city` | string | 城市 |
+| `province` | string | 省份 |
+| `country` | string | 国家 |
+| `address` | string | 地址 |
+| `latitude` | number | 纬度，保留 6 位小数 |
+| `longitude` | number | 经度，保留 6 位小数 |
+| `timezone` | string | 时区 |
+| `summary` | string | 摘要 |
+| `lifeFacilities` | string | 生活设施描述 |
+| `description` | string | 社区描述 |
+| `ratingAvg` | number | 平均评分 |
+| `ratingCount` | number | 评分数量 |
+| `tags` | array | 标签列表 |
+| `refundPolicy` | string | 退改政策 |
+| `createdAt` | string | 创建时间（ISO 8601） |
+| `updatedAt` | string | 更新时间（ISO 8601） |
+
+### 6.2 更新社区
+- **URL**：`PATCH /api/communities/{id}`
+- **说明**：更新指定社区的基础信息。所有字段可选，缺省则保持原值。
+
+**请求体字段**（均可选）
+
+| 字段 | 类型 | 说明 |
+| ---- | ---- | ---- |
+| `name` | string | 社区名称 |
+| `shortName` | string | 名称缩写 |
+| `nameEn` | string | 英文名 |
+| `status` | number | 状态 |
+| `operatorUserId` | number | 创建者用户 ID |
+| `city` | string | 城市 |
+| `province` | string | 省份 |
+| `country` | string | 国家 |
+| `address` | string | 地址 |
+| `latitude` | number | 纬度 |
+| `longitude` | number | 经度 |
+| `timezone` | string | 时区 |
+| `summary` | string | 摘要 |
+| `lifeFacilities` | string | 生活设施描述 |
+| `description` | string | 社区描述 |
+| `ratingAvg` | number | 平均评分 |
+| `ratingCount` | number | 评分数量 |
+| `tags` | array | 标签列表，字符串数组 |
+| `refundPolicy` | string | 退改政策 |
+
+**响应**：更新后的 `CommunityDto`。
+
+### 6.3 删除社区
+- **URL**：`DELETE /api/communities/{id}`
+- **说明**：标记删除社区（`status` 置为 `-1`），不做物理删除。
+- **响应**：`data` 为 `null`
+
+## 7. 状态字典与枚举 <a id="状态字典"></a>
 
 | 枚举 | 取值 | 说明 |
 | ---- | ---- | ---- |
