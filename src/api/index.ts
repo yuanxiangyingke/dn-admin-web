@@ -253,6 +253,10 @@ export interface CommunityQuery {
     size?: number;
 }
 
+export type CommunityPayload = Partial<Omit<CommunityRecord, 'tags'>> & {
+    tags?: string[] | null;
+};
+
 export const fetchCommunityList = (
     params?: CommunityQuery
 ): Promise<AxiosResponse<ApiResponse<PaginatedResult<CommunityRecord>>>> => {
@@ -260,6 +264,29 @@ export const fetchCommunityList = (
         url: '/api/communities',
         method: 'get',
         params,
+        baseURL: API_BASE_URL,
+    });
+};
+
+export const createCommunity = (
+    payload: CommunityPayload
+): Promise<AxiosResponse<ApiResponse<CommunityRecord>>> => {
+    return request<ApiResponse<CommunityRecord>>({
+        url: '/api/communities',
+        method: 'post',
+        data: payload,
+        baseURL: API_BASE_URL,
+    });
+};
+
+export const updateCommunity = (
+    id: number | string,
+    payload: Partial<CommunityPayload>
+): Promise<AxiosResponse<ApiResponse<CommunityRecord>>> => {
+    return request<ApiResponse<CommunityRecord>>({
+        url: `/api/communities/${id}`,
+        method: 'patch',
+        data: payload,
         baseURL: API_BASE_URL,
     });
 };

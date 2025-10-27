@@ -121,11 +121,31 @@ const options = ref<FormOption>({
     labelWidth: '120px',
     span: 24,
     list: [
+        { type: 'input', label: '社区ID', prop: 'id', disabled: true, placeholder: '保存后自动生成' },
         { type: 'input', label: '社区名称', prop: 'name', required: true },
         { type: 'input', label: '简称', prop: 'shortName' },
+        { type: 'input', label: '英文名', prop: 'nameEn' },
+        {
+            type: 'switch',
+            label: '状态',
+            prop: 'status',
+            activeText: '启用',
+            inactiveText: '停用',
+            activeValue: 1,
+            inactiveValue: 0,
+        },
         { type: 'input', label: '城市', prop: 'city' },
         { type: 'input', label: '省份', prop: 'province' },
-        { type: 'switch', label: '状态', prop: 'status', activeText: '启用', inactiveText: '停用' },
+        { type: 'input', label: '国家/地区', prop: 'country' },
+        { type: 'input', label: '详细地址', prop: 'address' },
+        { type: 'input', label: '时区', prop: 'timezone' },
+        { type: 'textarea', label: '生活设施', prop: 'lifeFacilities', rows: 2 },
+        { type: 'textarea', label: '摘要', prop: 'summary', rows: 3 },
+        { type: 'input', label: '标签', prop: 'tags', placeholder: '使用逗号分隔' },
+        { type: 'textarea', label: '退改政策', prop: 'refundPolicy', rows: 3 },
+        { type: 'textarea', label: '社区描述', prop: 'description', rows: 4 },
+        { type: 'input', label: '创建时间', prop: 'createdAt', disabled: true },
+        { type: 'input', label: '更新时间', prop: 'updatedAt', disabled: true },
     ],
 });
 
@@ -133,8 +153,15 @@ const visible = ref(false);
 const isEdit = ref(false);
 const rowData = ref<Record<string, any>>({});
 
+const formatTagsForEdit = (tags?: CommunityRecord['tags']) => {
+    if (Array.isArray(tags)) {
+        return tags.join(', ');
+    }
+    return tags ?? '';
+};
+
 const handleEdit = (row: CommunityRecord) => {
-    rowData.value = { ...row };
+    rowData.value = { ...row, tags: formatTagsForEdit(row.tags) };
     isEdit.value = true;
     visible.value = true;
 };
