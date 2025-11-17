@@ -13,7 +13,7 @@
                 :currentPage="page.index"
                 :changePage="changePage">
                 <template #toolbarBtn>
-                    <el-button type="warning" :icon="CirclePlusFilled" @click="visible = true">新增社区</el-button>
+                    <el-button type="warning" :icon="CirclePlusFilled" @click="handleCreate">新增社区</el-button>
                 </template>
                 <template #status="{ rows }">
                     <el-tag :type="rows.status === 1 ? 'success' : 'warning'">
@@ -57,7 +57,14 @@ import TableDetail from '@/components/table-detail.vue';
 import TableEdit from '@/components/table-edit.vue';
 import TableSearch from '@/components/table-search.vue';
 import type { FormOption, FormOptionList } from '@/types/form-option';
-import { fetchCommunityList, type CommunityRecord } from '@/api/index';
+import {
+    fetchCommunityList,
+    createCommunity,
+    updateCommunity,
+    deleteCommunity,
+    type CommunityRecord,
+    type CommunityPayload,
+} from '@/api/index';
 import type { AxiosError } from 'axios';
 
 const query = reactive({
@@ -166,8 +173,126 @@ const handleEdit = (row: CommunityRecord) => {
     visible.value = true;
 };
 
-const updateData = () => {
-    closeDialog();
+const handleCreate = () => {
+    rowData.value = {
+        status: 1,
+        tags: '',
+    };
+    isEdit.value = false;
+    visible.value = true;
+};
+
+const normalizeTags = (value: unknown): string[] | null => {
+    if (Array.isArray(value)) {
+        const normalized = value
+            .map((item) => (typeof item === 'string' ? item.trim() : item))
+            .filter((item): item is string => typeof item === 'string' && item.length > 0);
+        return normalized.length ? normalized : null;
+    }
+    if (typeof value === 'string') {
+        const normalized = value
+            .split(',')
+            .map((item) => item.trim())
+            .filter((item) => item.length > 0);
+        return normalized.length ? normalized : null;
+    }
+    return null;
+};
+
+const toNumberOrNull = (value: unknown) => {
+    if (value === '' || value === null || value === undefined) {
+        return null;
+    }
+    const num = typeof value === 'number' ? value : Number(value);
+    return Number.isNaN(num) ? null : num;
+};
+
+const buildCommunityPayload = (formValue: Record<string, any>): CommunityPayload => {
+    const payload: CommunityPayload = {};
+    const {
+        name,
+        shortName,
+        nameEn,
+        status,
+        operatorUserId,
+        city,
+        province,
+        country,
+        address,
+        latitude,
+        longitude,
+        timezone,
+        summary,
+        lifeFacilities,
+        description,
+        ratingAvg,
+        ratingCount,
+        tags,
+        refundPolicy,
+    } = formValue;
+
+    if (name) payload.name = name.trim();
+    if (shortName) payload.shortName = shortName.trim();
+    if (nameEn) payload.nameEn = nameEn.trim();
+    if (status !== undefined && status !== null) payload.status = status;
+    const operatorUserIdNumber = toNumberOrNull(operatorUserId);
+    if (operatorUserIdNumber !== null) payload.operatorUserId = operatorUserIdNumber;
+    if (city) payload.city = city.trim();
+    if (province) payload.province = province.trim();
+    if (country) payload.country = country.trim();
+    if (address) payload.address = address.trim();
+    if (timezone) payload.timezone = timezone.trim();
+    if (summary) payload.summary = summary.trim();
+    if (lifeFacilities) payload.lifeFacilities = lifeFacilities.trim();
+    if (description) payload.description = description.trim();
+    const latitudeNumber = toNumberOrNull(latitude);
+    if (latitudeNumber !== null) payload.latitude = latitudeNumber;
+    const longitudeNumber = toNumberOrNull(longitude);
+    if (longitudeNumber !== null) payload.longitude = longitudeNumber;
+    const ratingAvgNumber = toNumberOrNull(ratingAvg);
+    if (ratingAvgNumber !== null) payload.ratingAvg = ratingAvgNumber;
+    const ratingCountNumber = toNumberOrNull(ratingCount);
+    if (ratingCountNumber !== null) payload.ratingCount = ratingCountNumber;
+    const normalizedTags = normalizeTags(tags);
+    if (normalizedTags !== null) {
+        payload.tags = normalizedTags;
+    } else if (
+        (typeof tags === 'string' && tags.trim() === '') ||
+        (Array.isArray(tags) && tags.length === 0)
+    ) {
+        payload.tags = [];
+    }
+    if (refundPolicy) payload.refundPolicy = refundPolicy.trim();
+
+    return payload;
+};
+
+const updateData = async (formValue: Record<string, any>) => {
+    if (!formValue.name || !formValue.name.trim()) {
+        ElMessage.error('请填写社区名称');
+        return;
+    }
+
+    const payload = buildCommunityPayload(formValue);
+    try {
+        if (isEdit.value) {
+            const id = rowData.value.id;
+            if (id === undefined || id === null) {
+                ElMessage.error('缺少社区ID，无法更新');
+                return;
+            }
+            await updateCommunity(id, payload);
+            ElMessage.success('社区更新成功');
+        } else {
+            await createCommunity(payload);
+            ElMessage.success('社区新增成功');
+        }
+        closeDialog();
+        getData();
+    } catch (error) {
+        const err = error as AxiosError<{ message?: string }>;
+        ElMessage.error(err.response?.data?.message || err.message || '保存失败');
+    }
 };
 
 const closeDialog = () => {
@@ -206,8 +331,18 @@ const handleView = (row: CommunityRecord) => {
     visibleDetail.value = true;
 };
 
-const handleDelete = () => {
-    ElMessage.info('暂未开放删除功能');
+const handleDelete = async (row: CommunityRecord) => {
+    try {
+        await deleteCommunity(row.id);
+        ElMessage.success('删除成功');
+        if (tableData.value.length === 1 && page.index > 1) {
+            page.index -= 1;
+        }
+        getData();
+    } catch (error) {
+        const err = error as AxiosError<{ message?: string }>;
+        ElMessage.error(err.response?.data?.message || err.message || '删除失败');
+    }
 };
 </script>
 

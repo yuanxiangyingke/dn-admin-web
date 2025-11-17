@@ -224,6 +224,10 @@ export const ringOptions = {
 };
 
 export const dashOpt1 = {
+    tooltip: {
+        trigger: 'axis',
+        formatter: '{b}：{c}人',
+    },
     xAxis: {
         type: 'category',
         boundaryGap: false,
@@ -239,9 +243,10 @@ export const dashOpt1 = {
         bottom: '2%',
         containLabel: true,
     },
-    color: ['#009688', '#f44336'],
+    color: ['#009688'],
     series: [
         {
+            name: '用户量',
             type: 'line',
             areaStyle: {
                 color: new graphic.LinearGradient(0, 0, 0, 1, [
@@ -256,12 +261,7 @@ export const dashOpt1 = {
                 ]),
             },
             smooth: true,
-            data: [120, 132, 301, 134, 90, 230, 210],
-        },
-        {
-            type: 'line',
-            smooth: true,
-            data: [220, 122, 191, 234, 190, 130, 310],
+            data: [120, 150, 230, 260, 200, 240, 310],
         },
     ],
 };
@@ -283,11 +283,11 @@ export const dashOpt2 = {
                 borderWidth: 2,
             },
             data: [
-                { value: 1048, name: '数码' },
-                { value: 735, name: '食品' },
-                { value: 580, name: '母婴' },
-                { value: 484, name: '家电' },
-                { value: 300, name: '运动' },
+                { value: 420, name: '共创训练营' },
+                { value: 360, name: '社交派对' },
+                { value: 280, name: '技能工作坊' },
+                { value: 220, name: '城市探索' },
+                { value: 180, name: '线上圆桌' },
             ],
         },
     ],

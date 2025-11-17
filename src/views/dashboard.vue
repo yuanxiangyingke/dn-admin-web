@@ -7,41 +7,41 @@
                         <User />
                     </el-icon>
                     <div class="card-content">
-                        <countup class="card-num color1" :end="6666" />
-                        <div>用户访问量</div>
+                        <countup class="card-num color1" :end="3260" />
+                        <div>用户周活跃量</div>
                     </div>
                 </el-card>
             </el-col>
             <el-col :span="6">
                 <el-card shadow="hover" body-class="card-body">
                     <el-icon class="card-icon bg2">
-                        <ChatDotRound />
+                        <HomeFilled />
                     </el-icon>
                     <div class="card-content">
-                        <countup class="card-num color2" :end="168" />
-                        <div>系统消息</div>
+                        <countup class="card-num color2" :end="48" />
+                        <div>社区入住量</div>
                     </div>
                 </el-card>
             </el-col>
             <el-col :span="6">
                 <el-card shadow="hover" body-class="card-body">
                     <el-icon class="card-icon bg3">
-                        <Goods />
+                        <Calendar />
                     </el-icon>
                     <div class="card-content">
-                        <countup class="card-num color3" :end="8888" />
-                        <div>商品数量</div>
+                        <countup class="card-num color3" :end="37" />
+                        <div>活动报名数量</div>
                     </div>
                 </el-card>
             </el-col>
             <el-col :span="6">
                 <el-card shadow="hover" body-class="card-body">
                     <el-icon class="card-icon bg4">
-                        <ShoppingCartFull />
+                        <Opportunity />
                     </el-icon>
                     <div class="card-content">
-                        <countup class="card-num color4" :end="568" />
-                        <div>今日订单量</div>
+                        <countup class="card-num color4" :end="129" />
+                        <div>机会申请数量</div>
                     </div>
                 </el-card>
             </el-col>
@@ -51,8 +51,8 @@
             <el-col :span="18">
                 <el-card shadow="hover">
                     <div class="card-header">
-                        <p class="card-header-title">订单动态</p>
-                        <p class="card-header-desc">最近一周订单状态，包括订单成交量和订单退货量</p>
+                        <p class="card-header-title">用户量</p>
+                        <p class="card-header-desc">最近一周用户数量走势，记录每天的用户数量</p>
                     </div>
                     <v-chart class="chart" :option="dashOpt1" />
                 </el-card>
@@ -60,19 +60,19 @@
             <el-col :span="6">
                 <el-card shadow="hover">
                     <div class="card-header">
-                        <p class="card-header-title">品类分布</p>
-                        <p class="card-header-desc">最近一个月销售商品的品类情况</p>
+                        <p class="card-header-title">活动偏好</p>
+                        <p class="card-header-desc">最近一个月游民最常报名的活动类型</p>
                     </div>
                     <v-chart class="chart" :option="dashOpt2" />
                 </el-card>
             </el-col>
         </el-row>
         <el-row :gutter="20">
-            <el-col :span="7">
+            <el-col :span="12">
                 <el-card shadow="hover" :body-style="{ height: '400px' }">
                     <div class="card-header">
-                        <p class="card-header-title">时间线</p>
-                        <p class="card-header-desc">最新的销售动态和活动信息</p>
+                        <p class="card-header-title">平台动态</p>
+                        <p class="card-header-desc">记录社区入住、活动与服务的实时变化</p>
                     </div>
                     <el-timeline>
                         <el-timeline-item v-for="(activity, index) in activities" :key="index" :color="activity.color">
@@ -87,28 +87,19 @@
                     </el-timeline>
                 </el-card>
             </el-col>
-            <el-col :span="10">
+            <el-col :span="12">
                 <el-card shadow="hover" :body-style="{ height: '400px' }">
                     <div class="card-header">
-                        <p class="card-header-title">渠道统计</p>
-                        <p class="card-header-desc">最近一个月的订单来源统计</p>
-                    </div>
-                    <v-chart class="map-chart" :option="mapOptions" />
-                </el-card>
-            </el-col>
-            <el-col :span="7">
-                <el-card shadow="hover" :body-style="{ height: '400px' }">
-                    <div class="card-header">
-                        <p class="card-header-title">排行榜</p>
-                        <p class="card-header-desc">销售商品的热门榜单Top5</p>
+                        <p class="card-header-title">热门活动榜</p>
+                        <p class="card-header-desc">依报名人数排序，实时体现活动热度</p>
                     </div>
                     <div>
                         <div class="rank-item" v-for="(rank, index) in ranks">
                             <div class="rank-item-avatar">{{ index + 1 }}</div>
                             <div class="rank-item-content">
                                 <div class="rank-item-top">
-                                    <div class="rank-item-title">{{ rank.title }}</div>
-                                    <div class="rank-item-desc">销量：{{ rank.value }}</div>
+                                <div class="rank-item-title">{{ rank.title }}</div>
+                                <div class="rank-item-desc">报名：{{ rank.value }}人</div>
                                 </div>
                                 <el-progress
                                     :show-text="false"
@@ -128,60 +119,41 @@
 
 <script setup lang="ts" name="dashboard">
 import countup from '@/components/countup.vue';
-import { use, registerMap } from 'echarts/core';
-import { BarChart, LineChart, PieChart, MapChart } from 'echarts/charts';
-import {
-    GridComponent,
-    TooltipComponent,
-    LegendComponent,
-    TitleComponent,
-    VisualMapComponent,
-} from 'echarts/components';
+import { use } from 'echarts/core';
+import { LineChart, PieChart } from 'echarts/charts';
+import { GridComponent, TooltipComponent, LegendComponent } from 'echarts/components';
 import { CanvasRenderer } from 'echarts/renderers';
 import VChart from 'vue-echarts';
-import { dashOpt1, dashOpt2, mapOptions } from './chart/options';
-import chinaMap from '@/utils/china';
-use([
-    CanvasRenderer,
-    BarChart,
-    GridComponent,
-    LineChart,
-    PieChart,
-    TooltipComponent,
-    LegendComponent,
-    TitleComponent,
-    VisualMapComponent,
-    MapChart,
-]);
-registerMap('china', chinaMap);
+import { dashOpt1, dashOpt2 } from './chart/options';
+use([CanvasRenderer, GridComponent, LineChart, PieChart, TooltipComponent, LegendComponent]);
 const activities = [
     {
-        content: '收藏商品',
-        description: 'xxx收藏了你的商品，就是不买',
+        content: '杭州·灵感工坊入住率 96%',
+        description: '周租房源已售罄，剩余月租名额 4 个',
         timestamp: '30分钟前',
         color: '#00bcd4',
     },
     {
-        content: '用户评价',
-        description: 'xxx给了某某商品一个差评，吐血啊',
+        content: '深圳夜游民主题活动上线',
+        description: '已有 68 位游民报名，等待审核 5 人',
         timestamp: '55分钟前',
         color: '#1ABC9C',
     },
     {
-        content: '订单提交',
-        description: 'xxx提交了订单，快去收钱吧',
+        content: '上海共创营发布 3 个创业机会',
+        description: '设计、BD、AI 开发者各 1 名，审核中',
         timestamp: '1小时前',
         color: '#3f51b5',
     },
     {
-        content: '退款申请',
-        description: 'xxx申请了仅退款，又要亏钱了',
+        content: '清迈站发起“远程税务答疑”服务',
+        description: '今日预约 22 人，客服已分配导师',
         timestamp: '15小时前',
         color: '#f44336',
     },
     {
-        content: '商品上架',
-        description: '运营专员瞒着你上架了一辆飞机',
+        content: '社区代币“游民贝壳”本周发放 2.3w',
+        description: '完成活动分享与好友邀约将额外奖励',
         timestamp: '1天前',
         color: '#009688',
     },
@@ -189,33 +161,33 @@ const activities = [
 
 const ranks = [
     {
-        title: '手机',
-        value: 10000,
-        percent: 80,
+        title: '杭州 · 灵感工坊「AI 共创周」',
+        value: 320,
+        percent: 96,
         color: '#f25e43',
     },
     {
-        title: '电脑',
-        value: 8000,
-        percent: 70,
+        title: '成都 · 云端协作社「远程工作节」',
+        value: 280,
+        percent: 92,
         color: '#00bcd4',
     },
     {
-        title: '相机',
-        value: 6000,
-        percent: 60,
+        title: '深圳 · 夜游民基地「数字游民市集」',
+        value: 245,
+        percent: 88,
         color: '#64d572',
     },
     {
-        title: '衣服',
-        value: 5000,
-        percent: 55,
+        title: '上海 · 共创营地「创业加速营」',
+        value: 210,
+        percent: 84,
         color: '#e9a745',
     },
     {
-        title: '书籍',
-        value: 4000,
-        percent: 50,
+        title: '清迈 · 游牧小镇「跨境协同体验营」',
+        value: 188,
+        percent: 80,
         color: '#009688',
     },
 ];
@@ -349,9 +321,5 @@ const ranks = [
 .rank-item-desc {
     font-size: 14px;
     color: #999;
-}
-.map-chart {
-    width: 100%;
-    height: 350px;
 }
 </style>

@@ -36,7 +36,7 @@
 </template>
 
 <script setup lang="ts" name="system-menu">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { ElMessage } from 'element-plus';
 import { CirclePlusFilled } from '@element-plus/icons-vue';
 import { Menus } from '@/types/menu';
@@ -45,8 +45,8 @@ import TableDetail from '@/components/table-detail.vue';
 import TableEdit from '@/components/table-edit.vue';
 import { FormOption } from '@/types/form-option';
 import { useMenuStore } from '@/store/menu';
-import { createMenuItem } from '@/api/index';
-import type { MenuPayload } from '@/api/index';
+import { createMenuItem, fetchAllMenus } from '@/api/index';
+import type { MenuPayload, MenuTreeNode } from '@/api/index';
 import type { AxiosError } from 'axios';
 
 // 表格相关
@@ -58,27 +58,77 @@ let columns = ref([
     { prop: 'operator', label: '操作', width: 250 },
 ])
 
-const getOptions = (data: any) => {
-    return data.map(item => {
-        const a: any = {
-            label: item.title,
-            value: item.id,
-        }
-        if (item.children) {
-            a.children = getOptions(item.children)
-        }
-        return a
-    })
+interface CascaderNode {
+    label: string;
+    value: string | number;
+    children?: CascaderNode[];
 }
+
+const buildCascaderOptions = (
+    data: Array<{ title?: string; id?: string | number; children?: any[] }>
+): CascaderNode[] => {
+    return (data ?? []).map((item) => {
+        const option: CascaderNode = {
+            label: item.title ?? '',
+            value:
+                item.id ??
+                (typeof (item as any).index !== 'undefined'
+                    ? ((item as any).index as string | number)
+                    : String(item.title ?? '')),
+        };
+        if (Array.isArray(item.children) && item.children.length) {
+            option.children = buildCascaderOptions(item.children);
+        }
+        return option;
+    });
+};
 const menuStore = useMenuStore();
 const menuList = computed(() => menuStore.menuList);
-const cascaderOptions = computed(() => getOptions(menuList.value));
+const cascaderOptions = ref<CascaderNode[]>(buildCascaderOptions(menuList.value));
+const parentOptionsLoaded = ref(false);
+const parentOptionsLoading = ref(false);
+
+const loadParentOptions = async () => {
+    if (parentOptionsLoading.value) {
+        return;
+    }
+    parentOptionsLoading.value = true;
+    try {
+        const response = await fetchAllMenus();
+        const payload: MenuTreeNode[] = response.data?.data ?? [];
+        cascaderOptions.value = buildCascaderOptions(payload);
+        parentOptionsLoaded.value = true;
+    } catch (error) {
+        console.error('Failed to load full menu tree', error);
+        cascaderOptions.value = buildCascaderOptions(menuList.value);
+        parentOptionsLoaded.value = false;
+    } finally {
+        parentOptionsLoading.value = false;
+    }
+};
 
 onMounted(() => {
     menuStore.loadMenus(true).catch((error) => {
         console.error('Failed to refresh menu data', error);
     });
+    loadParentOptions();
 });
+
+watch(
+    () => menuList.value,
+    (value) => {
+        if (!parentOptionsLoaded.value) {
+            cascaderOptions.value = buildCascaderOptions(value);
+        }
+    },
+    { deep: true }
+);
+
+const ensureParentOptions = () => {
+    if (!parentOptionsLoaded.value || !cascaderOptions.value.length) {
+        loadParentOptions();
+    }
+};
 
 
 // 新增/编辑弹窗相关
@@ -99,12 +149,18 @@ const isEdit = ref(false);
 const rowData = ref<any>({ title: '', index: '', component: '', icon: '', permiss: '', pid: null });
 const submitting = ref(false);
 const handleCreate = () => {
+    ensureParentOptions();
     rowData.value = { title: '', index: '', component: '', icon: '', permiss: '', pid: null };
     isEdit.value = false;
     visible.value = true;
 };
 const handleEdit = (row: Menus) => {
-    rowData.value = { ...row };
+    ensureParentOptions();
+    const parentId = row.pid ?? null;
+    rowData.value = {
+        ...row,
+        pid: parentId ? [parentId] : null,
+    };
     isEdit.value = true;
     visible.value = true;
 };
@@ -139,6 +195,7 @@ const updateData = async (formValue: Record<string, any>) => {
         await createMenuItem(payload);
         ElMessage.success('新增菜单成功');
         await menuStore.loadMenus(true);
+        await loadParentOptions();
         closeDialog();
     } catch (error) {
         const err = error as AxiosError<{ message?: string }>;

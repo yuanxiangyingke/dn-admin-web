@@ -198,6 +198,14 @@ export const fetchMenuTree = (): Promise<AxiosResponse<ApiResponse<MenuTreeNode[
     });
 };
 
+export const fetchAllMenus = (): Promise<AxiosResponse<ApiResponse<MenuTreeNode[]>>> => {
+    return request<ApiResponse<MenuTreeNode[]>>({
+        url: '/api/menus',
+        method: 'get',
+        baseURL: API_BASE_URL,
+    });
+};
+
 export interface MenuPayload {
     parentId?: number | string | null;
     title: string;
@@ -287,6 +295,16 @@ export const updateCommunity = (
         url: `/api/communities/${id}`,
         method: 'patch',
         data: payload,
+        baseURL: API_BASE_URL,
+    });
+};
+
+export const deleteCommunity = (
+    id: number | string
+): Promise<AxiosResponse<ApiResponse<null>>> => {
+    return request<ApiResponse<null>>({
+        url: `/api/communities/${id}`,
+        method: 'delete',
         baseURL: API_BASE_URL,
     });
 };
