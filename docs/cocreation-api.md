@@ -75,6 +75,12 @@
 - **URL**：`DELETE /api/cocreation/projects/{id}`
 - **响应**：`data=null`
 
+### 2.6 更新项目状态
+- **URL**：`PATCH /api/cocreation/projects/{id}/status`
+- **Query**：`status`
+- **说明**：仅更新状态字段。
+- **响应**：更新后的 `CoCreationProjectDto`
+
 ---
 
 所有接口返回 `ApiResponse`，`code="0"` 表示成功；异常情况请查看 `message`。确保平台库存在 `co_creation_project` 表后再启用模块。

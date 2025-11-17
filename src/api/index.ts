@@ -386,6 +386,18 @@ export const deleteActivity = (
     });
 };
 
+export const updateActivityStatus = (
+    id: number | string,
+    status: number
+): Promise<AxiosResponse<ApiResponse<ActivityRecord>>> => {
+    return request<ApiResponse<ActivityRecord>>({
+        url: `/api/activities/${id}/status`,
+        method: 'patch',
+        params: { status },
+        baseURL: API_BASE_URL,
+    });
+};
+
 export interface JobOpportunityRecord {
     id: string;
     externalRef?: string | null;
@@ -466,6 +478,18 @@ export const deleteJobOpportunity = (
     });
 };
 
+export const updateJobOpportunityStatus = (
+    id: string,
+    status: number
+): Promise<AxiosResponse<ApiResponse<JobOpportunityRecord>>> => {
+    return request<ApiResponse<JobOpportunityRecord>>({
+        url: `/api/jobs/${id}/status`,
+        method: 'patch',
+        params: { status },
+        baseURL: API_BASE_URL,
+    });
+};
+
 export interface CoCreationProjectRecord {
     id: string;
     title: string;
@@ -540,6 +564,18 @@ export const deleteCoCreationProject = (
     return request<ApiResponse<null>>({
         url: `/api/cocreation/projects/${id}`,
         method: 'delete',
+        baseURL: API_BASE_URL,
+    });
+};
+
+export const updateCoCreationProjectStatus = (
+    id: string,
+    status: number
+): Promise<AxiosResponse<ApiResponse<CoCreationProjectRecord>>> => {
+    return request<ApiResponse<CoCreationProjectRecord>>({
+        url: `/api/cocreation/projects/${id}/status`,
+        method: 'patch',
+        params: { status },
         baseURL: API_BASE_URL,
     });
 };

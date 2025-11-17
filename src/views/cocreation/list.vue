@@ -11,9 +11,13 @@
                 :editFunc="handleEdit"
                 :refresh="getData"
                 :currentPage="page.index"
-                :changePage="changePage">
+                :changePage="changePage"
+                @selection-change="handleSelectionChange">
                 <template #toolbarBtn>
                     <el-button type="warning" :icon="CirclePlusFilled" @click="handleCreate">新增项目</el-button>
+                    <el-button type="primary" style="margin-left: 10px" @click="openStatusDialog">
+                        修改审核状态
+                    </el-button>
                 </template>
                 <template #status="{ rows }">
                     <el-tag :type="getStatusTag(rows.status)">
@@ -44,6 +48,24 @@
         <el-dialog title="项目详情" v-model="visibleDetail" width="720px" destroy-on-close>
             <TableDetail :data="detailData" />
         </el-dialog>
+
+        <el-dialog title="修改审核状态" v-model="statusDialogVisible" width="400px" destroy-on-close>
+            <el-form label-width="120px">
+                <el-form-item label="新的状态">
+                    <el-select v-model="statusForm.status" placeholder="请选择">
+                        <el-option
+                            v-for="option in statusOptions"
+                            :key="option.value"
+                            :label="option.label"
+                            :value="option.value" />
+                    </el-select>
+                </el-form-item>
+            </el-form>
+            <template #footer>
+                <el-button @click="statusDialogVisible = false">取消</el-button>
+                <el-button type="primary" @click="confirmStatusChange">确定</el-button>
+            </template>
+        </el-dialog>
     </div>
 </template>
 
@@ -61,13 +83,14 @@ import {
     createCoCreationProject,
     updateCoCreationProject,
     deleteCoCreationProject,
+    updateCoCreationProjectStatus,
     type CoCreationProjectRecord,
     type CoCreationPayload,
 } from '@/api/index';
 import type { AxiosError } from 'axios';
 
 const statusOptions = [
-    { label: '草稿', value: 0, tag: 'warning' },
+    { label: '待审核', value: 0, tag: 'warning' },
     { label: '已发布', value: 1, tag: 'success' },
     { label: '已归档', value: 2, tag: 'info' },
 ];
@@ -103,6 +126,7 @@ const page = reactive({
     total: 0,
 });
 const tableData = ref<CoCreationProjectRecord[]>([]);
+const selectedRows = ref<CoCreationProjectRecord[]>([]);
 
 const getSelectLabel = (options: Array<{ label: string; value: number }>, value?: number | null) => {
     const found = options.find((item) => item.value === value);
@@ -288,6 +312,44 @@ const handleDelete = async (row: CoCreationProjectRecord) => {
     } catch (error) {
         const err = error as AxiosError<{ message?: string }>;
         ElMessage.error(err.response?.data?.message || err.message || '删除项目失败');
+    }
+};
+
+const handleSelectionChange = (rows: CoCreationProjectRecord[]) => {
+    selectedRows.value = rows;
+};
+
+const statusDialogVisible = ref(false);
+const statusForm = reactive({
+    status: 0,
+});
+const statusTarget = ref<CoCreationProjectRecord | null>(null);
+
+const openStatusDialog = () => {
+    if (!selectedRows.value.length) {
+        ElMessage.warning('请选择需要修改的项目');
+        return;
+    }
+    if (selectedRows.value.length > 1) {
+        ElMessage.warning('一次只能修改一个项目的状态');
+        return;
+    }
+    statusTarget.value = selectedRows.value[0];
+    statusForm.status =
+        typeof statusTarget.value?.status === 'number' ? (statusTarget.value.status as number) : 0;
+    statusDialogVisible.value = true;
+};
+
+const confirmStatusChange = async () => {
+    if (!statusTarget.value) return;
+    try {
+        await updateCoCreationProjectStatus(statusTarget.value.id, statusForm.status);
+        ElMessage.success('项目状态更新成功');
+        statusDialogVisible.value = false;
+        getData();
+    } catch (error) {
+        const err = error as AxiosError<{ message?: string }>;
+        ElMessage.error(err.response?.data?.message || err.message || '更新项目状态失败');
     }
 };
 </script>

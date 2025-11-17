@@ -78,6 +78,8 @@ import { toRefs, PropType, ref } from 'vue'
 import { Delete, Edit, View, Refresh } from '@element-plus/icons-vue';
 import { ElMessageBox } from 'element-plus';
 
+const emit = defineEmits(['selection-change']);
+
 const props = defineProps({
     // 表格相关
     tableData: {
@@ -166,6 +168,7 @@ columns.value.forEach((item) => {
 const multipleSelection = ref([])
 const handleSelectionChange = (selection: any[]) => {
     multipleSelection.value = selection
+    emit('selection-change', selection)
 }
 
 // 当前页码变化的事件

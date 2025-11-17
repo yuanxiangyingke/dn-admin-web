@@ -94,6 +94,12 @@
 - **说明**：删除指定活动。
 - **响应**：`data=null`
 
+### 2.6 更新活动状态
+- **URL**：`PATCH /api/activities/{id}/status`
+- **Query 参数**：`status` (number)
+- **说明**：仅更新 `status` 字段。
+- **响应**：更新后的 `ActivityDto`
+
 ---
 
 > 注意：所有接口均返回统一 `ApiResponse`，`code="0"` 表示成功。需要启用平台数据源配置并确保 `activity` 表存在。

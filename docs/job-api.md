@@ -78,6 +78,12 @@
 - **URL**：`DELETE /api/jobs/{id}`
 - **响应**：`data=null`
 
+### 2.6 更新岗位状态
+- **URL**：`PATCH /api/jobs/{id}/status`
+- **Query**：`status` (number)
+- **说明**：仅更新岗位 `status` 字段。
+- **响应**：更新后的 `JobOpportunityDto`
+
 ---
 
 返回统一 `ApiResponse`，`code="0"` 为成功；异常时返回相应错误描述。
