@@ -544,6 +544,148 @@ export const deleteCoCreationProject = (
     });
 };
 
+export interface RoomRecord {
+    id: number;
+    communityId: number;
+    name: string;
+    code?: string | null;
+    status?: string | null;
+    roomType?: string | null;
+    description?: string | null;
+    createdAt?: string | null;
+    updatedAt?: string | null;
+}
+
+export interface RoomQuery {
+    page?: number;
+    size?: number;
+    keyword?: string;
+}
+
+export type RoomPayload = Partial<Omit<RoomRecord, 'id'>>;
+
+export const fetchRoomList = (
+    params?: RoomQuery
+): Promise<AxiosResponse<ApiResponse<PaginatedResult<RoomRecord>>>> => {
+    return request<ApiResponse<PaginatedResult<RoomRecord>>>({
+        url: '/api/rooms',
+        method: 'get',
+        params,
+        baseURL: API_BASE_URL,
+    });
+};
+
+export const createRoom = (
+    payload: RoomPayload
+): Promise<AxiosResponse<ApiResponse<RoomRecord>>> => {
+    return request<ApiResponse<RoomRecord>>({
+        url: '/api/rooms',
+        method: 'post',
+        data: payload,
+        baseURL: API_BASE_URL,
+    });
+};
+
+export const updateRoom = (
+    id: number | string,
+    payload: RoomPayload
+): Promise<AxiosResponse<ApiResponse<RoomRecord>>> => {
+    return request<ApiResponse<RoomRecord>>({
+        url: `/api/rooms/${id}`,
+        method: 'patch',
+        data: payload,
+        baseURL: API_BASE_URL,
+    });
+};
+
+export const deleteRoom = (
+    id: number | string
+): Promise<AxiosResponse<ApiResponse<null>>> => {
+    return request<ApiResponse<null>>({
+        url: `/api/rooms/${id}`,
+        method: 'delete',
+        baseURL: API_BASE_URL,
+    });
+};
+
+export interface RoomBookingRequestRecord {
+    id: number;
+    userId: number;
+    communityId: number;
+    roomId?: number | null;
+    ratePlanId?: number | null;
+    checkIn?: string | null;
+    checkOut?: string | null;
+    guests?: number | null;
+    guestName?: string | null;
+    phone?: string | null;
+    idNumber?: string | null;
+    education?: string | null;
+    intro?: string | null;
+    communityExpect?: string | null;
+    priceQuoteAmount?: number | null;
+    priceQuoteCurrency?: string | null;
+    pricingSnapshot?: string | null;
+    status?: string | null;
+    reviewedBy?: number | null;
+    reviewedAt?: string | null;
+    rejectionReason?: string | null;
+    createdAt?: string | null;
+    updatedAt?: string | null;
+}
+
+export interface RoomBookingQuery {
+    page?: number;
+    size?: number;
+    keyword?: string;
+}
+
+export type RoomBookingPayload = Partial<Omit<RoomBookingRequestRecord, 'id'>>;
+
+export const fetchRoomBookingList = (
+    params?: RoomBookingQuery
+): Promise<AxiosResponse<ApiResponse<PaginatedResult<RoomBookingRequestRecord>>>> => {
+    return request<ApiResponse<PaginatedResult<RoomBookingRequestRecord>>>({
+        url: '/api/room-booking-requests',
+        method: 'get',
+        params,
+        baseURL: API_BASE_URL,
+    });
+};
+
+export const createRoomBookingRequest = (
+    payload: RoomBookingPayload
+): Promise<AxiosResponse<ApiResponse<RoomBookingRequestRecord>>> => {
+    return request<ApiResponse<RoomBookingRequestRecord>>({
+        url: '/api/room-booking-requests',
+        method: 'post',
+        data: payload,
+        baseURL: API_BASE_URL,
+    });
+};
+
+export const updateRoomBookingRequest = (
+    id: number | string,
+    payload: RoomBookingPayload
+): Promise<AxiosResponse<ApiResponse<RoomBookingRequestRecord>>> => {
+    return request<ApiResponse<RoomBookingRequestRecord>>({
+        url: `/api/room-booking-requests/${id}`,
+        method: 'patch',
+        data: payload,
+        baseURL: API_BASE_URL,
+    });
+};
+
+export const deleteRoomBookingRequest = (
+    id: number | string
+): Promise<AxiosResponse<ApiResponse<null>>> => {
+    return request<ApiResponse<null>>({
+        url: `/api/room-booking-requests/${id}`,
+        method: 'delete',
+        baseURL: API_BASE_URL,
+    });
+};
+
 export const fetchRoleMenuTree = (
     roleId: number | string
 ): Promise<AxiosResponse<ApiResponse<MenuTreeNode[]>>> => {

@@ -207,6 +207,20 @@ export const menuData: Menus[] = [
                 index: '/community/info',
                 title: '社区信息管理',
             },
+            {
+                id: 'community-rooms',
+                pid: 'community',
+                index: '/rooms',
+                title: '房间列表',
+                permiss: 'community:rooms',
+            },
+            {
+                id: 'community-room-bookings',
+                pid: 'community',
+                index: '/room-bookings',
+                title: '房间预订',
+                permiss: 'community:room-bookings',
+            },
         ],
     },
     {

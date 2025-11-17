@@ -48,6 +48,24 @@ const routes: RouteRecordRaw[] = [
                 component: () => import(/* webpackChunkName: "cocreation" */ '../views/cocreation/list.vue'),
             },
             {
+                path: '/rooms',
+                name: 'rooms',
+                meta: {
+                    title: '房间列表',
+                    permiss: 'community:rooms',
+                },
+                component: () => import(/* webpackChunkName: "rooms" */ '../views/room/list.vue'),
+            },
+            {
+                path: '/room-bookings',
+                name: 'room-bookings',
+                meta: {
+                    title: '房间预订',
+                    permiss: 'community:room-bookings',
+                },
+                component: () => import(/* webpackChunkName: "room-bookings" */ '../views/room/booking.vue'),
+            },
+            {
                 path: '/system-user',
                 name: 'system-user',
                 meta: {
