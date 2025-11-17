@@ -225,6 +225,21 @@ export const menuData: Menus[] = [
         ],
     },
     {
+        id: 'jobs',
+        icon: 'Briefcase',
+        index: 'jobs',
+        title: '工作机会',
+        children: [
+            {
+                id: 'jobs:list',
+                pid: 'jobs',
+                index: '/jobs',
+                title: '机会列表',
+                permiss: 'career:jobs',
+            },
+        ],
+    },
+    {
         id: '6',
         icon: 'DocumentAdd',
         index: '6',

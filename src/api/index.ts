@@ -386,6 +386,86 @@ export const deleteActivity = (
     });
 };
 
+export interface JobOpportunityRecord {
+    id: string;
+    externalRef?: string | null;
+    title: string;
+    companyName?: string | null;
+    workMode?: number | null;
+    employmentType?: number | null;
+    location?: string | null;
+    salaryAmount?: number | null;
+    salaryMinAmount?: number | null;
+    salaryMaxAmount?: number | null;
+    salaryCurrency?: string | null;
+    salaryDisplay?: string | null;
+    description?: string | null;
+    requirement?: string | null;
+    responsibility?: string | null;
+    teamIntro?: string | null;
+    benefitsSummary?: string | null;
+    contact?: string | null;
+    status?: number | null;
+    postedAt?: string | null;
+    createdBy?: number | null;
+    updatedBy?: number | null;
+    createdAt?: string | null;
+    updatedAt?: string | null;
+    preEmployment?: boolean | null;
+}
+
+export interface JobQuery {
+    page?: number;
+    size?: number;
+    keyword?: string;
+}
+
+export type JobPayload = Partial<Omit<JobOpportunityRecord, 'id'>>;
+
+export const fetchJobList = (
+    params?: JobQuery
+): Promise<AxiosResponse<ApiResponse<PaginatedResult<JobOpportunityRecord>>>> => {
+    return request<ApiResponse<PaginatedResult<JobOpportunityRecord>>>({
+        url: '/api/jobs',
+        method: 'get',
+        params,
+        baseURL: API_BASE_URL,
+    });
+};
+
+export const createJobOpportunity = (
+    payload: JobPayload
+): Promise<AxiosResponse<ApiResponse<JobOpportunityRecord>>> => {
+    return request<ApiResponse<JobOpportunityRecord>>({
+        url: '/api/jobs',
+        method: 'post',
+        data: payload,
+        baseURL: API_BASE_URL,
+    });
+};
+
+export const updateJobOpportunity = (
+    id: string,
+    payload: JobPayload
+): Promise<AxiosResponse<ApiResponse<JobOpportunityRecord>>> => {
+    return request<ApiResponse<JobOpportunityRecord>>({
+        url: `/api/jobs/${id}`,
+        method: 'patch',
+        data: payload,
+        baseURL: API_BASE_URL,
+    });
+};
+
+export const deleteJobOpportunity = (
+    id: string
+): Promise<AxiosResponse<ApiResponse<null>>> => {
+    return request<ApiResponse<null>>({
+        url: `/api/jobs/${id}`,
+        method: 'delete',
+        baseURL: API_BASE_URL,
+    });
+};
+
 export const fetchRoleMenuTree = (
     roleId: number | string
 ): Promise<AxiosResponse<ApiResponse<MenuTreeNode[]>>> => {

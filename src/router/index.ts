@@ -30,6 +30,15 @@ const routes: RouteRecordRaw[] = [
                 component: () => import(/* webpackChunkName: "activities" */ '../views/activity/list.vue'),
             },
             {
+                path: '/jobs',
+                name: 'jobs',
+                meta: {
+                    title: '工作机会',
+                    permiss: 'career:jobs',
+                },
+                component: () => import(/* webpackChunkName: "jobs" */ '../views/job/list.vue'),
+            },
+            {
                 path: '/system-user',
                 name: 'system-user',
                 meta: {
