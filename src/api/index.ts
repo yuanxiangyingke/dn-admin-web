@@ -466,6 +466,84 @@ export const deleteJobOpportunity = (
     });
 };
 
+export interface CoCreationProjectRecord {
+    id: string;
+    title: string;
+    host?: string | null;
+    city?: string | null;
+    certified?: boolean | null;
+    deadlineAt?: string | null;
+    coverUrl?: string | null;
+    coverAlt?: string | null;
+    brief?: string | null;
+    teamIntro?: string | null;
+    workMode?: string | null;
+    duration?: string | null;
+    memberType?: string | null;
+    cooperation?: string | null;
+    reward?: string | null;
+    requirement?: string | null;
+    postedAt?: string | null;
+    status?: number | null;
+    createdBy?: number | null;
+    updatedBy?: number | null;
+    createdAt?: string | null;
+    updatedAt?: string | null;
+    coverResourceId?: number | null;
+}
+
+export interface CoCreationQuery {
+    page?: number;
+    size?: number;
+    keyword?: string;
+}
+
+export type CoCreationPayload = Partial<Omit<CoCreationProjectRecord, 'id'>>;
+
+export const fetchCoCreationList = (
+    params?: CoCreationQuery
+): Promise<AxiosResponse<ApiResponse<PaginatedResult<CoCreationProjectRecord>>>> => {
+    return request<ApiResponse<PaginatedResult<CoCreationProjectRecord>>>({
+        url: '/api/cocreation/projects',
+        method: 'get',
+        params,
+        baseURL: API_BASE_URL,
+    });
+};
+
+export const createCoCreationProject = (
+    payload: CoCreationPayload
+): Promise<AxiosResponse<ApiResponse<CoCreationProjectRecord>>> => {
+    return request<ApiResponse<CoCreationProjectRecord>>({
+        url: '/api/cocreation/projects',
+        method: 'post',
+        data: payload,
+        baseURL: API_BASE_URL,
+    });
+};
+
+export const updateCoCreationProject = (
+    id: string,
+    payload: CoCreationPayload
+): Promise<AxiosResponse<ApiResponse<CoCreationProjectRecord>>> => {
+    return request<ApiResponse<CoCreationProjectRecord>>({
+        url: `/api/cocreation/projects/${id}`,
+        method: 'patch',
+        data: payload,
+        baseURL: API_BASE_URL,
+    });
+};
+
+export const deleteCoCreationProject = (
+    id: string
+): Promise<AxiosResponse<ApiResponse<null>>> => {
+    return request<ApiResponse<null>>({
+        url: `/api/cocreation/projects/${id}`,
+        method: 'delete',
+        baseURL: API_BASE_URL,
+    });
+};
+
 export const fetchRoleMenuTree = (
     roleId: number | string
 ): Promise<AxiosResponse<ApiResponse<MenuTreeNode[]>>> => {

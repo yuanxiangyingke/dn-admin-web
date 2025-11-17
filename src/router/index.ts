@@ -39,6 +39,15 @@ const routes: RouteRecordRaw[] = [
                 component: () => import(/* webpackChunkName: "jobs" */ '../views/job/list.vue'),
             },
             {
+                path: '/cocreation',
+                name: 'cocreation',
+                meta: {
+                    title: '在地共创',
+                    permiss: 'career:cocreation',
+                },
+                component: () => import(/* webpackChunkName: "cocreation" */ '../views/cocreation/list.vue'),
+            },
+            {
                 path: '/system-user',
                 name: 'system-user',
                 meta: {

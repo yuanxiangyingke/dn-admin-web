@@ -240,6 +240,21 @@ export const menuData: Menus[] = [
         ],
     },
     {
+        id: 'cocreation',
+        icon: 'Connection',
+        index: 'cocreation',
+        title: '在地共创',
+        children: [
+            {
+                id: 'cocreation:list',
+                pid: 'cocreation',
+                index: '/cocreation',
+                title: '共创项目',
+                permiss: 'career:cocreation',
+            },
+        ],
+    },
+    {
         id: '6',
         icon: 'DocumentAdd',
         index: '6',
