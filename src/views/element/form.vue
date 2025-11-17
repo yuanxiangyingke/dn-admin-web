@@ -70,7 +70,7 @@
                 <el-col :span="24">
                     <el-form-item>
                         <el-button type="primary" @click="onSubmit(formRef)">表单提交</el-button>
-                        <el-button @click="onReset(formRef)">重置表单</el-button>
+                        <el-button @click="onReset(formRef)">刷新表单</el-button>
                     </el-form-item>
                 </el-col>
             </el-row>
