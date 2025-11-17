@@ -309,6 +309,83 @@ export const deleteCommunity = (
     });
 };
 
+export interface ActivityRecord {
+    id: number;
+    title: string;
+    status?: number | null;
+    visibility?: number | null;
+    summary?: string | null;
+    description?: string | null;
+    coverUrl?: string | null;
+    mode?: number | null;
+    city?: string | null;
+    venue?: string | null;
+    startAt?: string | null;
+    endAt?: string | null;
+    feeType?: number | null;
+    price?: number | null;
+    currency?: string | null;
+    capacity?: number | null;
+    createdBy?: number | null;
+    updatedBy?: number | null;
+    createdAt?: string | null;
+    updatedAt?: string | null;
+    publishedAt?: string | null;
+    coverResourceId?: number | null;
+}
+
+export interface ActivityQuery {
+    page?: number;
+    size?: number;
+    keyword?: string;
+}
+
+export type ActivityPayload = Partial<Omit<ActivityRecord, 'id'>>;
+
+export const fetchActivityList = (
+    params?: ActivityQuery
+): Promise<AxiosResponse<ApiResponse<PaginatedResult<ActivityRecord>>>> => {
+    return request<ApiResponse<PaginatedResult<ActivityRecord>>>({
+        url: '/api/activities',
+        method: 'get',
+        params,
+        baseURL: API_BASE_URL,
+    });
+};
+
+export const createActivity = (
+    payload: ActivityPayload
+): Promise<AxiosResponse<ApiResponse<ActivityRecord>>> => {
+    return request<ApiResponse<ActivityRecord>>({
+        url: '/api/activities',
+        method: 'post',
+        data: payload,
+        baseURL: API_BASE_URL,
+    });
+};
+
+export const updateActivity = (
+    id: number | string,
+    payload: ActivityPayload
+): Promise<AxiosResponse<ApiResponse<ActivityRecord>>> => {
+    return request<ApiResponse<ActivityRecord>>({
+        url: `/api/activities/${id}`,
+        method: 'patch',
+        data: payload,
+        baseURL: API_BASE_URL,
+    });
+};
+
+export const deleteActivity = (
+    id: number | string
+): Promise<AxiosResponse<ApiResponse<null>>> => {
+    return request<ApiResponse<null>>({
+        url: `/api/activities/${id}`,
+        method: 'delete',
+        baseURL: API_BASE_URL,
+    });
+};
+
 export const fetchRoleMenuTree = (
     roleId: number | string
 ): Promise<AxiosResponse<ApiResponse<MenuTreeNode[]>>> => {

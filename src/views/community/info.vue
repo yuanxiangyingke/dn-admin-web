@@ -304,7 +304,7 @@ const closeDialog = () => {
 const visibleDetail = ref(false);
 const detailData = ref({
     row: {},
-    list: [] as Array<{ prop: string; label: string }>,
+    list: [] as Array<{ prop: string; label: string; value?: string }>,
 });
 
 const handleView = (row: CommunityRecord) => {

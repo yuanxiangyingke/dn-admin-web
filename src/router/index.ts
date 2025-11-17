@@ -21,6 +21,15 @@ const routes: RouteRecordRaw[] = [
                 component: () => import(/* webpackChunkName: "dashboard" */ '../views/dashboard.vue'),
             },
             {
+                path: '/activities',
+                name: 'activities',
+                meta: {
+                    title: '活动列表',
+                    permiss: 'community:activities',
+                },
+                component: () => import(/* webpackChunkName: "activities" */ '../views/activity/list.vue'),
+            },
+            {
                 path: '/system-user',
                 name: 'system-user',
                 meta: {

@@ -210,6 +210,21 @@ export const menuData: Menus[] = [
         ],
     },
     {
+        id: 'activity',
+        icon: 'Tickets',
+        index: 'activity',
+        title: '活动管理',
+        children: [
+            {
+                id: 'activity:list',
+                pid: 'activity',
+                index: '/activities',
+                title: '活动列表',
+                permiss: 'community:activities',
+            },
+        ],
+    },
+    {
         id: '6',
         icon: 'DocumentAdd',
         index: '6',
