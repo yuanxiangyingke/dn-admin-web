@@ -66,6 +66,33 @@ const routes: RouteRecordRaw[] = [
                 component: () => import(/* webpackChunkName: "room-bookings" */ '../views/room/booking.vue'),
             },
             {
+                path: '/room-photos',
+                name: 'room-photos',
+                meta: {
+                    title: '房间照片',
+                    permiss: 'community:room-photos',
+                },
+                component: () => import(/* webpackChunkName: "room-photos" */ '../views/room/photos.vue'),
+            },
+            {
+                path: '/room-rate-plans',
+                name: 'room-rate-plans',
+                meta: {
+                    title: '房间定价',
+                    permiss: 'community:room-rate-plans',
+                },
+                component: () => import(/* webpackChunkName: "room-rate-plans" */ '../views/room/rate-plans.vue'),
+            },
+            {
+                path: '/resources',
+                name: 'resources',
+                meta: {
+                    title: '资源列表',
+                    permiss: 'assets:resources',
+                },
+                component: () => import(/* webpackChunkName: "resources" */ '../views/resource/list.vue'),
+            },
+            {
                 path: '/system-user',
                 name: 'system-user',
                 meta: {

@@ -221,6 +221,20 @@ export const menuData: Menus[] = [
                 title: '房间预订',
                 permiss: 'community:room-bookings',
             },
+            {
+                id: 'community-room-photos',
+                pid: 'community',
+                index: '/room-photos',
+                title: '房间照片',
+                permiss: 'community:room-photos',
+            },
+            {
+                id: 'community-room-rate-plans',
+                pid: 'community',
+                index: '/room-rate-plans',
+                title: '房间定价',
+                permiss: 'community:room-rate-plans',
+            },
         ],
     },
     {
@@ -265,6 +279,21 @@ export const menuData: Menus[] = [
                 index: '/cocreation',
                 title: '共创项目',
                 permiss: 'career:cocreation',
+            },
+        ],
+    },
+    {
+        id: 'assets',
+        icon: 'Files',
+        index: 'assets',
+        title: '资源管理',
+        children: [
+            {
+                id: 'assets:resources',
+                pid: 'assets',
+                index: '/resources',
+                title: '资源列表',
+                permiss: 'assets:resources',
             },
         ],
     },

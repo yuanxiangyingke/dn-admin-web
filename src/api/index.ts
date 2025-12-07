@@ -1,7 +1,8 @@
 import { AxiosResponse } from 'axios';
 import request from '../utils/request';
+import type { ResourceAsset, ResourceQuery } from '@/types/resource';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081';
 
 export const fetchData = () => {
     return request({
@@ -166,6 +167,65 @@ export const deleteRole = (
         method: 'delete',
         baseURL: API_BASE_URL,
     });
+};
+
+export const fetchResourceAssets = (
+    params?: ResourceQuery
+): Promise<AxiosResponse<ApiResponse<PaginatedResult<ResourceAsset>>>> => {
+    return request<ApiResponse<PaginatedResult<ResourceAsset>>>({
+        url: '/api/resource-assets',
+        method: 'get',
+        params,
+        baseURL: API_BASE_URL,
+    });
+};
+
+export const deleteResourceAsset = (
+    id: number | string
+): Promise<AxiosResponse<ApiResponse<null>>> => {
+    return request<ApiResponse<null>>({
+        url: `/api/resource-assets/${id}`,
+        method: 'delete',
+        baseURL: API_BASE_URL,
+    });
+};
+
+export interface OssPolicyPayload {
+    fileName: string;
+    dir?: string;
+    contentType?: string;
+}
+
+export interface OssPolicyResult {
+    accessKeyId: string;
+    policy: string;
+    signature: string;
+    host: string;
+    key: string;
+    dir?: string;
+    expire: number;
+}
+
+export const createOssPolicy = (
+    payload: OssPolicyPayload
+): Promise<AxiosResponse<ApiResponse<OssPolicyResult>>> => {
+    return request<ApiResponse<OssPolicyResult>>({
+        url: '/api/resource-assets/oss/policy',
+        method: 'post',
+        data: payload,
+        baseURL: API_BASE_URL,
+    });
+};
+
+export const createResourceAsset = (
+    payload: ResourceAsset
+): Promise<AxiosResponse<ApiResponse<ResourceAsset>>> => {
+        return request<ApiResponse<ResourceAsset>>({
+            url: '/api/resource-assets',
+            method: 'post',
+            data: payload,
+            baseURL: API_BASE_URL,
+        });
 };
 
 export const updateRolePermissions = (
@@ -717,6 +777,138 @@ export const deleteRoomBookingRequest = (
 ): Promise<AxiosResponse<ApiResponse<null>>> => {
     return request<ApiResponse<null>>({
         url: `/api/room-booking-requests/${id}`,
+        method: 'delete',
+        baseURL: API_BASE_URL,
+    });
+};
+
+export interface RoomRatePlanRecord {
+    id: number;
+    roomId: number;
+    name: string;
+    billingUnit: string;
+    currency: string;
+    baseAmount: number;
+    minDuration?: number | null;
+    maxDuration?: number | null;
+    isActive?: boolean | null;
+    sortOrder?: number | null;
+    createdAt?: string | null;
+    updatedAt?: string | null;
+}
+
+export interface RoomRatePlanQuery {
+    page?: number;
+    size?: number;
+    roomId?: number | string;
+    keyword?: string;
+    isActive?: boolean | string | number;
+}
+
+export type RoomRatePlanPayload = Partial<Omit<RoomRatePlanRecord, 'id'>>;
+
+export const fetchRoomRatePlanList = (
+    params?: RoomRatePlanQuery
+): Promise<AxiosResponse<ApiResponse<PaginatedResult<RoomRatePlanRecord>>>> => {
+    return request<ApiResponse<PaginatedResult<RoomRatePlanRecord>>>({
+        url: '/api/room-rate-plans',
+        method: 'get',
+        params,
+        baseURL: API_BASE_URL,
+    });
+};
+
+export const createRoomRatePlan = (
+    payload: RoomRatePlanPayload
+): Promise<AxiosResponse<ApiResponse<RoomRatePlanRecord>>> => {
+    return request<ApiResponse<RoomRatePlanRecord>>({
+        url: '/api/room-rate-plans',
+        method: 'post',
+        data: payload,
+        baseURL: API_BASE_URL,
+    });
+};
+
+export const updateRoomRatePlan = (
+    id: number | string,
+    payload: RoomRatePlanPayload
+): Promise<AxiosResponse<ApiResponse<RoomRatePlanRecord>>> => {
+    return request<ApiResponse<RoomRatePlanRecord>>({
+        url: `/api/room-rate-plans/${id}`,
+        method: 'patch',
+        data: payload,
+        baseURL: API_BASE_URL,
+    });
+};
+
+export const deleteRoomRatePlan = (
+    id: number | string
+): Promise<AxiosResponse<ApiResponse<null>>> => {
+    return request<ApiResponse<null>>({
+        url: `/api/room-rate-plans/${id}`,
+        method: 'delete',
+        baseURL: API_BASE_URL,
+    });
+};
+
+export interface RoomPhotoRecord {
+    id: number;
+    roomId: number;
+    url: string;
+    caption?: string | null;
+    sortOrder?: number | null;
+    createdAt?: string | null;
+    resourceId?: number | null;
+}
+
+export interface RoomPhotoQuery {
+    page?: number;
+    size?: number;
+    roomId?: number | string;
+    keyword?: string;
+}
+
+export type RoomPhotoPayload = Partial<Omit<RoomPhotoRecord, 'id'>>;
+
+export const fetchRoomPhotoList = (
+    params?: RoomPhotoQuery
+): Promise<AxiosResponse<ApiResponse<PaginatedResult<RoomPhotoRecord>>>> => {
+    return request<ApiResponse<PaginatedResult<RoomPhotoRecord>>>({
+        url: '/api/room-photos',
+        method: 'get',
+        params,
+        baseURL: API_BASE_URL,
+    });
+};
+
+export const createRoomPhoto = (
+    payload: RoomPhotoPayload
+): Promise<AxiosResponse<ApiResponse<RoomPhotoRecord>>> => {
+    return request<ApiResponse<RoomPhotoRecord>>({
+        url: '/api/room-photos',
+        method: 'post',
+        data: payload,
+        baseURL: API_BASE_URL,
+    });
+};
+
+export const updateRoomPhoto = (
+    id: number | string,
+    payload: RoomPhotoPayload
+): Promise<AxiosResponse<ApiResponse<RoomPhotoRecord>>> => {
+    return request<ApiResponse<RoomPhotoRecord>>({
+        url: `/api/room-photos/${id}`,
+        method: 'patch',
+        data: payload,
+        baseURL: API_BASE_URL,
+    });
+};
+
+export const deleteRoomPhoto = (
+    id: number | string
+): Promise<AxiosResponse<ApiResponse<null>>> => {
+    return request<ApiResponse<null>>({
+        url: `/api/room-photos/${id}`,
         method: 'delete',
         baseURL: API_BASE_URL,
     });
