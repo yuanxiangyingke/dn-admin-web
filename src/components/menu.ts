@@ -222,6 +222,13 @@ export const menuData: Menus[] = [
                 permiss: 'community:room-bookings',
             },
             {
+                id: 'community-room-overview',
+                pid: 'community',
+                index: '/room-overview',
+                title: '房态总览',
+                permiss: 'community:room-overview',
+            },
+            {
                 id: 'community-room-photos',
                 pid: 'community',
                 index: '/room-photos',
